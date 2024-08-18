@@ -28,7 +28,7 @@
   this software.
 */
 
-#include "USBKeyboard.h"
+#include "ModPad.h"
 
 // Buffer to hold the previously generated Keyboard HID report, for comparison purposes inside the HID class driver.
 static uint8_t PrevHIDReportBuffer[MAX(sizeof(USB_ConsumerReport_Data_t), sizeof(USB_KeyReport_Data_t))];
@@ -69,7 +69,7 @@ int main(void)
 		MCUCR = (1<<IVSEL);
 			// Jump to start of Boot Flash section
 		asm volatile ("\tjmp 0x3000\n");
-		while(1);
+		while (1);
 	}
 	
 	SetupHardware();
@@ -119,7 +119,7 @@ void SetupHardware()
 	wdt_disable();
 
 	/* Disable clock division */
-	//clock_prescale_set(clock_div_1);	For some reason it's not taking the funciton or define form power.h when mcu is set to atmega16u2
+	//clock_prescale_set(clock_div_1); Bug in power.h that it's not taking the funciton or define when mcu is set to atmega16u2
 	//The work around is to write directly to registers:
 	CLKPR = (1 << CLKPCE);
 	CLKPR = (0 << CLKPS3) | (0 << CLKPS2) | (0 << CLKPS1) | (0 << CLKPS0);
@@ -215,7 +215,7 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		USB_KeyReport_Data_t* KeyboardReport = (USB_KeyReport_Data_t*)ReportData;
 		*ReportSize = sizeof(USB_KeyReport_Data_t);
 		*ReportID   = HID_REPORTID_KeyboardReport;
-		while(buttonStatus[UsedKeyCodes].duration != 0)
+		while (buttonStatus[UsedKeyCodes].duration != 0)
 		{
 			KeyboardReport->KeyCode[UsedKeyCodes] = (uint8_t)keyMap.profiles[buttonStatus[UsedKeyCodes].row][buttonStatus[UsedKeyCodes].column];
 			UsedKeyCodes++;

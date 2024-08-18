@@ -8,17 +8,10 @@
 #include "ButtonMatrix.h"
 
 void MatrixInit(){
-	
-		//Setting pins for button matrix
-		DDRB &= ~((1 << COL1) | (1 << COL2) | (1 << COL3) | (1 << COL4));
-		DDRC |= (1 << ROW1);
-		DDRD |= (1 << ROW2);
-		
-		//Setting timer
-		//TCCR1A |= (1 << WGM11);		//Phase correct PWM 9-bit
-		//TCCR1B |= (1 << CS11) | (1 << CS10);	//64 prescaler for 4,1 ms period
-		//TIMSK1 |= (1 << TOIE1);		//Enable overflow interrupt flag
-		
+	//Setting pins for button matrix
+	DDRB &= ~((1 << COL1) | (1 << COL2) | (1 << COL3) | (1 << COL4));
+	DDRC |= (1 << ROW1);
+	DDRD |= (1 << ROW2);	
 }
 
 bool ButtonPress(){
@@ -38,7 +31,6 @@ bool ButtonPress(){
 }
 
 pressedButton_t* ReadKey(){
-		//Checking if any button is pressed
 	static pressedButton_t pressedKeys [ROW_SIZE*COLUMN_SIZE];
 	//uint8_t rowPins[2] = {ROW1, ROW2};
 	uint8_t columnPins[4] = {COL1, COL2, COL3, COL4};	
@@ -77,6 +69,5 @@ pressedButton_t* ReadKey(){
 	{
 		pressedKeys[activeKeys].duration = 0;
 	}
-	
 	return pressedKeys;
 }

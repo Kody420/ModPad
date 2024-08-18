@@ -1,0 +1,56 @@
+
+/*
+ * Issues.txt
+ *
+ * Created: 04.08.2024 12:51:32
+ *  Author: Kody
+ */ 
+
+ PCB:
+	-Debugwire
+		-final goal for programming is with usb via dfu so debugwire in not needed also if debugwire fuse is activated then reset is deactivated so SPI in not working
+		-remove DWIRE pins
+
+	-SPI
+		-add SPI classical 3x2 pinout for easier fuse setting up
+
+	-Profile button
+		-wrong connection on pin 1 with GND that couses the button to be permanetly pressed
+		-bounces like crazy so might add capacitor between pin 4 and GND
+		-pin 4 needs to be connected to PD7/HWB to use the HWBE fuse to get to bootloader
+		-to close to switches
+
+	-USB-C
+		-Was nightmare to solder becouse pads were too close together (make pads thinner)
+
+	-ATMEGA16U2
+		-missing connections between VCC, UVCC and AVCC
+		-pads could be thinner to make soldering easier
+		-reset pin is missing 10k pullup rezistor
+
+	-Pogo pins
+		-Make pads longer for easier soldering
+		-Put them closer to the edge
+
+	-Leds
+		-Switches have dedicated seetrought part for leds to shine
+		-Put the leds under this part (make south-facing switches)
+		-One of the rows are connected to wrong pin both need to be on timer/counter0 (PB7/0C0A and PD0/0C0B)
+	
+	-Mounting holes
+		-Top left one need to be moved higher to make room for magnet next to pogo pins
+
+	-Switches
+		-Big middle hole needs to be bigger by like 0.15 mm
+
+
+
+
+Code:
+	-Effect 3 (breathing)
+		-Sometimes leds are blinking really fast
+		-problem is coused by changing the brightness with other effects. The delta is than in the wrong cycle and insted of cycling between
+		 min and max its overflowing and hitting min or max from "other side"
+		-Is fixed by reseting the device or just switching few times between effects
+	-Effect 1 (off)
+		-is not really off but rather minimum brightness (but is kinda nice bacouse I can tell if it't in bootloader)

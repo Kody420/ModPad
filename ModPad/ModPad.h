@@ -28,15 +28,10 @@
   this software.
 */
 
-/** \file
- *
- *  Header file for Keyboard.c.
- */
+#ifndef _MODPAD_H_
+#define _MODPAD_H_
 
-#ifndef _USBKEYBOARD_H_
-#define _USBKEYBOARD_H_
-
-	/* Includes: */
+	//Includes:
 		#include <avr/io.h>	
 		#include <avr/wdt.h>
 		#include <avr/power.h>
@@ -51,27 +46,25 @@
 		
 		#include <Includes/usb_hid_keys.h>
 		#include <Includes/Delay.h>
-
-		//#include <LUFA/Drivers/Board/LEDs.h>
-		//#include <LUFA/Drivers/Board/Buttons.h>
-		#include <LUFA/Drivers/USB/USB.h>
-		#include <LUFA/Platform/Platform.h>
 		
-	/* Macros: */
-		// Number of profiles 
+		#include <lufa/LUFA/Drivers/USB/USB.h>
+		#include <lufa/LUFA/Platform/Platform.h>
+		
+	//Macros:
+		//Number of profiles 
 		#define PROFILES 4
 		
-		// Command for feature report
+		//Commands for feature report
 		#define FEATR_EFFECT 0x01
 		#define FEATR_BRIGHTNESS 0x02
 		#define FEATR_PROFILE 0x03
 		#define FEATR_MAPPING 0x04
-		
+		//todo
 		#define FEATR_ACTIVE_PROFILES 0x06
-			//todo
+			
 
 		
-	/* Variables: */
+	//Variables:
 		typedef struct
 		{
 			uint16_t Command;
@@ -101,7 +94,7 @@
 		uint16_t effectNum = 0;
 		uint16_t effectModifier = KEY_RESERVED;
 		
-	/*EEPROM variables:*/
+	//EEPROM variables:
 		uint16_t EEMEM eepromEffectNum = 0x101;
 		uint8_t EEMEM eepromKeyProfile = 0;
 		uint16_t EEMEM eepromProfileSelect[PROFILES][ROW_SIZE][COLUMN_SIZE] = {
@@ -122,7 +115,7 @@
 				{KEY_MEDIA_PREVIOUSSONG, KEY_MEDIA_NEXTSONG, KEY_MEDIA_VOLUMEDOWN, KEY_SCROLLLOCK}
 			},
 		};
-	/* Function Prototypes: */
+	//Function Prototypes:
 		void SetupHardware(void);
 
 		void EVENT_USB_Device_Connect(void);
@@ -145,5 +138,5 @@
 		Array_t getKeyMap(uint8_t keyMode);
 		//uint16_t EffectChange(uint16_t Effect);
 		//uint16_t ModifierChange(uint16_t Modifier);
-#endif
+#endif /* MODPAD_H_ */
 

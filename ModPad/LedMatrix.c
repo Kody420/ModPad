@@ -11,7 +11,7 @@ void LedMatrixInit(void)
 {
 	uint8_t columnPins[COLUMN_SIZE] = {COL_LED1, COL_LED2, COL_LED3, COL_LED4};
 	uint8_t rowPins[ROW_SIZE] = {ROW_LED1, ROW_LED2};
-		//Saving into struct
+		//Saving into struct and setting pins
 	for (int i = 0;i < LED_COLUMN_SIZE;i++)
 	{
 		pins.ledCol[i] = columnPins[i];
@@ -23,23 +23,21 @@ void LedMatrixInit(void)
 		DDRD |= (1 << rowPins[0]);
 		DDRC |= (1 << rowPins[1]);		
 	}
-		//Attempt at synchronization of timers
+		//Synchronization of timers
 	GTCCR |= (1 << TSM);
 	GTCCR |= (1 << PSRSYNC);
+	
 		//Timer0 for first row
 	TCCR0A |= (1 << WGM01) | (1 << WGM00) | (1 << COM0B1) | (1 << COM0B0);		//Fast PWM mode and set on match, clear at top
-	//TCCR0A |= (1 << WGM01) | (1 << WGM00) | (1 << COM0A1);	
 	TCCR0B |= (1 << CS02);		//prescaler clk/256 should be equivalent to 61 Hz refresh rate on each led
 	TIMSK0 |= (1 << TOIE0);		//Turning on interrupts
 	OCR0B = 0;
-	
 		//Timer1 for second row
-	TCCR1A |= (1 << COM1B1) | (1 << COM1B0) | (1 << WGM10);
-	//TCCR1A |= (1 << COM1B1) | (1 << WGM10);
+	TCCR1A |= (1 << COM1B1) | (1 << COM1B0) | (1 << WGM10);		//Fast PWM mode and set on match, clear at top
 	TCCR1B |= (1 << WGM12) | (1 << CS12);
-	//TIMSK1 |= (1 << TOIE1);		//Turning on interrupts
 	OCR1BL = 0;
 	
+		//Enable prescaler to start counting
 	GTCCR &= ~(1 << TSM);
 }
 
@@ -113,7 +111,7 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 		break;
 		
 		case KEY_EFFECT4:		//Button activated
-			while(buttonStatus[activeLed].duration != 0)
+			while (buttonStatus[activeLed].duration != 0)
 			{
 				brightness[buttonStatus[activeLed].row][buttonStatus[activeLed].column] = maxBrightness;
 				activeLed++;
@@ -184,7 +182,6 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 		break;
 		case KEY_RESERVED:
 		break;
-		//default:
 	}
 	return effectNum;
 }
