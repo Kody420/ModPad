@@ -21,7 +21,10 @@ void LedMatrixInit(void)
 	{
 		pins.ledRow[i] = rowPins[i];
 		DDRD |= (1 << rowPins[0]);
-		DDRC |= (1 << rowPins[1]);		
+		DDRC |= (1 << rowPins[1]);
+		
+		PORTD |= (1 << rowPins[0]);
+		PORTC |= (1 << rowPins[1]);		
 	}
 		//Synchronization of timers
 	GTCCR |= (1 << TSM);
@@ -45,15 +48,23 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 {
 	static uint8_t delta = 1;
 	static uint8_t maxBrightness = 255;
-	static uint8_t minBrightness = 0;
 	static uint8_t targetBrightness [2][4] = {{0,0,0,0},
 											  {0,0,0,0}};
-	static uint32_t pseudoRandom = 1;
+	static uint16_t	prevEffectNum = 0;
+	static uint16_t	prevEffectModifier = 0;										  
+	static uint16_t pseudoRandom = 1;
+	
 	
 	uint8_t activeLed = 0;
 	uint8_t Custombrightness [2][4] = {{40,80,120,160},
 									   {200,240,255,0}};
-		
+	bool effectChange = false;
+	if (effectNum != prevEffectNum || effectModifier != prevEffectModifier)
+	{
+		prevEffectNum = effectNum;
+		prevEffectModifier = effectModifier;
+		effectChange = true;
+	}
 	//Effect modifier switch
 	switch(effectModifier)
 	{
@@ -74,32 +85,42 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 	{
 		case KEY_EFFECT1:		//All off
 			CounterReset();
-			for (int i = 0;i < LED_COLUMN_SIZE;i++)
+			//Zero brightness fix for only this effect. Would like to fix it everywhere
+			//PORTD &= ~((1 << COL_LED1) | (1 << COL_LED2) | (1 << COL_LED3) | (1 << COL_LED4));
+			if (effectChange)
 			{
-				for (int x = 0;x < LED_ROW_SIZE;x++)
+				for (int i = 0;i < LED_COLUMN_SIZE;i++)
 				{
-					brightness[x][i] = 0x00;
+					for (int x = 0;x < LED_ROW_SIZE;x++)
+					{
+						brightness[x][i] = 0x00;
+					}
 				}
 			}
+			
 		break;
 		
 		case KEY_EFFECT2:		//All on with same brightness
 			CounterReset();
-			for (int i = 0;i < LED_COLUMN_SIZE;i++)
+			if (effectChange)
 			{
-				for (int x = 0;x < LED_ROW_SIZE;x++)
+				for (int i = 0;i < LED_COLUMN_SIZE;i++)
 				{
-					brightness[x][i] = maxBrightness;
+					for (int x = 0;x < LED_ROW_SIZE;x++)
+					{
+						brightness[x][i] = maxBrightness;
+					}
 				}
 			}
 		break;
 		
-		case KEY_EFFECT3:		//Breathing from min to max
+		case KEY_EFFECT3:		//Breathing from 0 to max
+			if (effectChange)brightness[0][0] = maxBrightness/2;
 			if (Counter() > 3)
 			{
 				CounterReset();
-				if(brightness[0][0] <= minBrightness || brightness[0][0] >= maxBrightness) delta = -delta;
-				brightness[0][0] += delta;
+				if(brightness[0][0] == 0 || brightness[0][0] == maxBrightness) delta = -delta;
+				if (maxBrightness != 0)brightness[0][0] += delta;	//if for edge case when maxBrightness is 0
 				for (int i = 0;i < LED_COLUMN_SIZE;i++)
 				{
 					for (int x = 0;x < LED_ROW_SIZE;x++)
@@ -107,7 +128,7 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 						brightness[x][i] = brightness[0][0];
 					}
 				}
-			}
+			}		
 		break;
 		
 		case KEY_EFFECT4:		//Button activated
@@ -123,7 +144,7 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 				{
 					for (int x = 0;x < LED_ROW_SIZE;x++)
 					{
-						if (brightness[x][i] > 0)--brightness[x][i];
+						if (brightness[x][i] > 0)brightness[x][i]--;
 					}
 				}
 			}
@@ -147,8 +168,8 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 			{
 				for (int i = 0;i < LED_COLUMN_SIZE;i++)
 				{
-					pseudoRandom = (pseudoRandom * 15648891 + 534486) & 0xFFFFFFFF;
-					if(brightness[x][i] == targetBrightness[x][i])targetBrightness[x][i] = (uint8_t)(pseudoRandom >> 16)%(maxBrightness/3);
+					pseudoRandom = (pseudoRandom * 156 + 53) % 0xFF;
+					if(brightness[x][i] == targetBrightness[x][i])targetBrightness[x][i] = pseudoRandom % ((maxBrightness/2)+1);
 					if(brightness[x][i] > targetBrightness[x][i])brightness[x][i]--;
 					else brightness[x][i]++;
 				}
@@ -188,7 +209,7 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 
 	//Refreshing of leds
 ISR(TIMER0_OVF_vect){
-	TCNT1L = 0xff;
+	TCNT1L = 0xFF;
 	Counting();
 	LedRefresh();
 }
@@ -199,10 +220,24 @@ ISR(TIMER0_OVF_vect){
 	by LED_COLUMN_SIZE - 1 so basically move back one column. (Cant move back by -1 cos for some reason it wont do modulo of negative number)
 */
 void LedRefresh(void){
+	
 	static int activeColumn = 0;
 	PORTD &= ~(1 << pins.ledCol[(activeColumn + LED_COLUMN_SIZE + 2) % LED_COLUMN_SIZE]);
 	OCR0B = brightness[0][activeColumn];
 	OCR1BL = brightness[1][activeColumn];
 	PORTD |= (1 << pins.ledCol[(activeColumn + LED_COLUMN_SIZE - 1) % LED_COLUMN_SIZE]);
 	activeColumn = (activeColumn + 1) % LED_COLUMN_SIZE;
+	/*
+	this actually turns off the LEDs but when brightness reaches 0 sometimes there is a flash to max brightness. Also button activated effect gets broken.
+	static int activeColumn = 0;
+	PORTD &= ~(1 << pins.ledCol[(activeColumn + LED_COLUMN_SIZE - 1) % LED_COLUMN_SIZE]);
+	TCCR0A |= (1 << COM0B1) | (1 << COM0B0);
+	TCCR1A |= (1 << COM1B1) | (1 << COM1B0);
+	OCR0B = brightness[0][activeColumn];
+	if (OCR0B == 0)TCCR0A &= ~((1 << COM0B1) | (1 << COM0B0));
+	OCR1BL = brightness[1][activeColumn];
+	if (OCR1BL == 0)TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
+	PORTD |= (1 << pins.ledCol[activeColumn]);
+	activeColumn = (activeColumn + 1) % LED_COLUMN_SIZE;
+	*/
 }

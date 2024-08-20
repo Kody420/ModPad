@@ -17,21 +17,17 @@ More light effects
 
 Effect for usb events
 
-Use bootloader
+Find corrent bootloader
 	-I would be good to find a bootloader for atmega16u2 but the older one for at90usb162 will do for now
 
-Add 16bit media keys
+Use any key code with any page
+	-Generic keyboard key codes are capped at 0xB1
 
 Better key codes
 	-there are starting to be too many different "types" of key codes so it might be necessery to put a identifier to each keycode
 	-that mean putting each key code in to struct with key code value and identifier (global, consumer,key modifier, effent, effect modifier, event)
 
 Second interface for module
-
-Make a power-down sequence
-	-will probably need v2 pcb for that
-	-uses a brown-out detection (BOD) to detect a voltage drop and run interrupt
-	-saving to eeprom
 
 Macro keys
 	- Be able to send macros (button combos)

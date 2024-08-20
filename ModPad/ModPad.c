@@ -210,7 +210,7 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		CounterReset();	
 	}
 		//Key codes are separated in to global and consumer ones. Each one has its own report
-	if (keyMap.profiles[buttonStatus[UsedKeyCodes].row][buttonStatus[UsedKeyCodes].column] <= 0xB1)
+	if (keyMap.profiles[buttonStatus[UsedKeyCodes].row][buttonStatus[UsedKeyCodes].column] <= 0xAF)
 	{
 		USB_KeyReport_Data_t* KeyboardReport = (USB_KeyReport_Data_t*)ReportData;
 		*ReportSize = sizeof(USB_KeyReport_Data_t);
@@ -266,8 +266,9 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 			getKeyMap((uint8_t)FeatureReport->Value);
 		break;
 		case FEATR_MAPPING:
-			eeprom_write_byte(&eepromProfileSelect[FeatureReport->Mapping[1]][FeatureReport->Mapping[2]][FeatureReport->Mapping[3]],FeatureReport->Value);
-			eventEffect = FeatureReport->Mapping[3] + FeatureReport->Mapping[2] * 4;
+			eeprom_write_word(&eepromProfileSelect[FeatureReport->Mapping[0]][FeatureReport->Mapping[1]][FeatureReport->Mapping[2]],FeatureReport->Value);
+			eventEffect = FeatureReport->Mapping[2] + FeatureReport->Mapping[1] * 4;
+			getKeyMap(FeatureReport->Mapping[0]);
 		break;
 	}
 	CounterReset();	
