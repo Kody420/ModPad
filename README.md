@@ -1,5 +1,5 @@
 # ModPad
-Goal of this project is a fully customizable macropad capable of connecting other modules for additional controls. ModPad is powered by [ATmega16u2](https://ww1.microchip.com/downloads/en/DeviceDoc/doc7799.pdf) running a custom firmware for controlling [LEDs](ModPad/LedMatrix.c) and [keys](ModPad/ButtonMatrix.c). [LUFA](https://github.com/abcminiuser/lufa) is used for handling USB communication on avr. For test sending feature reports to the device I use [hidapitester](https://github.com/todbot/hidapitester).
+Goal of this project is a fully customizable macropad capable of connecting other modules for additional controls. ModPad is powered by [ATmega16u2](https://ww1.microchip.com/downloads/en/DeviceDoc/doc7799.pdf) running a custom firmware for controlling [LEDs](ModPad/LedMatrix.c) and [keys](ModPad/ButtonMatrix.c). [LUFA](https://github.com/abcminiuser/lufa) is handling USB communication on avr. For sending feature reports to the device [modpadctrl](https://github.com/M4rc311o/modpadctrl) application is used .
 ![ModPad IRL](Hardware/ModPad%201.0.png?raw=true "ModPad IRL")
 
 ## Why does this project exists?
@@ -12,7 +12,7 @@ Tools and other stuff I had to learn to use for this project:
 
 ## Usage and functions
 Keys work like on a normal keyboard. So there is short press and long press for continuous sending. 
-ModPad supports up to 4 profiles which are basically pages for custom key mapping. Any from the [supported key codes](ModPad/Includes/usb_hid_keys.h) can be mapped on any profile on any key. Profiles can be changed using dedicated button or with command using hidapitester. To keep track what profile is activated corresponding LED turns on for initial moments after profile change.
+ModPad supports up to 4 profiles which are basically pages for custom key mapping. Any from the [supported key codes](ModPad/Includes/usb_hid_keys.h) can be mapped on any profile on any key. Profiles can be changed using dedicated button or by sending feature report. To keep track what profile is activated corresponding LED turns on for initial moments after profile change.
 Led effects use individually programmable red LEDs. Current effects:
 - Off
 - Max brightness
@@ -21,35 +21,25 @@ Led effects use individually programmable red LEDs. Current effects:
 - Custom brightness on individual keys
 - Random
 
-Effect can be changed using dedicated key codes which can be mapped to key or sent via hidapitester. Every effect's brightness is scaled using `maxBrightness` that can be changed the same way as effects.
+Effect can be changed using dedicated key codes which can be mapped to key or sent via feature report. Every effect's brightness is scaled using `maxBrightness` that can be changed the same way as effects.
 
 ## Sending commands to device
-ModPad is capable of receiving feature reports from host to set some settings. Currently I am using [hidapitester](https://github.com/todbot/hidapitester) to send reports. But there is a plan to create a custom application for that with my friend [M4rc311o](https://github.com/M4rc311o). The command for sending feature report looks like this:
+ModPad is capable of receiving feature reports from host to set some settings. My friend wrote a [modpadctrl](https://github.com/M4rc311o/modpadctrl) which is CLI application made for ModPad. It's also possible to send raw feature report to the device with application like [hidapitester](https://github.com/todbot/hidapitester). Here is the feature report structure:
 
-    .\hidapitester.exe --vidpid 03EB/2066 --usagePage 0xFF --open --length 8 --send-feature 03, 7 bytes to send
+| Byte | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|:--:| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
+| Data | ReportID | CommandL | CommandH | ValueL | ValueH | Optional1 | Optional2 | Reserved |
 
-### Explanation of arguments
-For all command that hidapitester uses go [here](https://github.com/todbot/hidapitester/tree/main?tab=readme-ov-file#usage).
+`Command` and `Value` are 16-bit variables. The report uses little endian for 16-bit variables. That means value 0x0103 has to be sent like 0x03,0x01.
 
-- `--vidpid` VendorID *03EB* and productID *2066* are identification numbers for the device. This vid and pid is taken from the LUFA keyboard demo and will be changed.
-- `--usagePage` To not interfere with any USB key codes a vendor defined usage page *0xFF* is used.
-- `--length` ReportID byte which is *03* and 7 data bytes.
-- `--send-feature` Here is the place for all the bytes that are going to be sent. Each byte is separated by comma. The structure is as follows:
+| Define | Command | Value | Optional1* | Optional2* |Description |
+| -------- | -------- | -------- | :--------: | :--------: |-------- |
+| FEATR_EFFECT | 0x01 | 0x101 - 0x109 | - | - |Changing LED effect |
+| FEATR_BRIGHTNESS | 0x02 | 0x20a, 0x20b | - | - |Increase/decrease max brightness |
+| FEATR_PROFILE | 0x03 | 0x00 - 0x03 | - | - |Changing active profile |
+| FEATR_MAPPING | 0x04 |[key codes](ModPad/Includes/usb_hid_keys.h) | profile: 0x00 - 0x03 | key: 0x00 - 0x07 | Remapping a profile |
 
-    | Byte | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
-    |:--:| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
-    | Data | ReportID | CommandL | CommandH | ValueL | ValueH | Profile | Row | Column |
-
-    - `Command` and `Value` are 16-bit variables. The hidapitester uses little endian for 16-bit variables. That means value 0x0103 has to be sent like 0x03,0x01.
-
-    | Define | Command | Value | Description |
-    | -------- | -------- | -------- | -------- |
-    | FEATR_EFFECT | 0x01 | 0x101 - 0x109 | Changing LED effect |
-    | FEATR_BRIGHTNESS | 0x02 | 0x20a, 0x20b | Increase/decrease max brightness |
-    | FEATR_PROFILE | 0x03 | 0x00 - 0x03 | Changing active profile |
-    | FEATR_MAPPING | 0x04 | [key codes](ModPad/Includes/usb_hid_keys.h) | Uses last 3 bytes - profile, row, column |
-
-
+ *The `-` indicates that the command is not using this byte, and should be set to 0x00.
 ## Modules
 The plan is to have different modules that will connect on the sides of ModPad with pogo pins. Communication will be done through SPI. Modules that came to mind are:
 - Sliders
