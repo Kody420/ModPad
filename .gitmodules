@@ -2,3 +2,7 @@
 [submodule "ModPad/lufa"]
 	path = ModPad/lufa
 	url = https://github.com/abcminiuser/lufa.git
+[submodule "modpadctrl"]
+	path = modpadctrl
+	url = https://github.com/M4rc311o/modpadctrl.git
+	branch = main
