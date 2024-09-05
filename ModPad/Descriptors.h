@@ -51,12 +51,13 @@
 			USB_Descriptor_Configuration_Header_t Config;
 
 			// Combined Keyboard/Mouse HID Interface
-			USB_Descriptor_Interface_t            HID_Interface;
-			USB_HID_Descriptor_HID_t              HID_HIDData;
-			USB_Descriptor_Endpoint_t             HID_ReportINEndpoint;
-			//USB_Descriptor_Interface_t		  HID_Interface2;
-			//USB_HID_Descriptor_HID_t            HID_HIDData2;
-			USB_Descriptor_Endpoint_t             HID_ReportOUTEndpoint;
+			USB_Descriptor_Interface_t            HID_KeyboardInterface;
+			USB_HID_Descriptor_HID_t              HID_KeyboardData;
+			USB_Descriptor_Endpoint_t             HID_KeyboardINEndpoint;
+			
+			USB_Descriptor_Interface_t			  HID_SliderInterface;
+			USB_HID_Descriptor_HID_t			  HID_SliderData;
+			USB_Descriptor_Endpoint_t             HID_SliderINEndpoint;
 		} USB_Descriptor_Configuration_t;
 
 		/** Enum for the device interface descriptor IDs within the device. Each interface descriptor
@@ -65,8 +66,8 @@
 		 */
 		enum InterfaceDescriptors_t
 		{
-			INTERFACE_ID_MacroPad = 0, /**< Combined keyboard and mouse interface descriptor ID */
-			INTERFACE_ID_test = 1, /**< Combined keyboard and mouse interface descriptor ID */
+			INTERFACE_ID_Keyboard = 0, /**< Combined keyboard and mouse interface descriptor ID */
+			INTERFACE_ID_Slider = 1, /**< Combined keyboard and mouse interface descriptor ID */
 		};
 
 		/** Enum for the device string descriptor IDs within the device. Each string descriptor should
@@ -82,9 +83,9 @@
 
 	/* Macros: */
 		/** Endpoint address of the HID reporting IN endpoint. */
-		#define HID_IN_EPADDR             (ENDPOINT_DIR_IN | 1)
+		#define KEYBOARD_IN_EPADDR             (ENDPOINT_DIR_IN | 1)
 		
-		#define HID_OUT_EPADDR             (ENDPOINT_DIR_OUT | 2)
+		#define SLIDER_IN_EPADDR             (ENDPOINT_DIR_IN | 2)
 
 		/** Size in bytes of each of the HID reporting IN endpoint. */
 		#define HID_EPSIZE                8

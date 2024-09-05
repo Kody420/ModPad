@@ -8,13 +8,16 @@
 
 #include "Delay.h"
 
-void Counting(void){
-	delay++;
+void Counting(uint8_t delay){
+	if (delay == 1)delay1++;
+	else if (delay == 2)delay2++;
 }
 
-void CounterReset(void){
-	delay = 0;
+void CounterReset(uint8_t delay){
+	if (delay == 1)delay1 = 0;
+	else if (delay == 2)delay2 = 0;
 }
-uint16_t Counter(void){
-	return delay;
+uint16_t Counter(uint8_t delay){
+	if (delay == 1)return delay1;
+	else if (delay == 2)return delay2++;
 }

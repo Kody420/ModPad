@@ -30,26 +30,46 @@
 
 #include "ModPad.h"
 
-// Buffer to hold the previously generated Keyboard HID report, for comparison purposes inside the HID class driver.
-static uint8_t PrevHIDReportBuffer[MAX(sizeof(USB_ConsumerReport_Data_t), sizeof(USB_KeyReport_Data_t))];
+// Buffer to hold the previously generated Keyboard report, for comparison purposes inside the HID class driver.
+static uint8_t PrevKeyboardReportBuffer[MAX(sizeof(USB_ConsumerReport_Data_t), sizeof(USB_KeyReport_Data_t))];
 
 /** LUFA HID Class driver interface configuration and state information. This structure is
  *  passed to all HID Class driver functions, so that multiple instances of the same class
  *  within a device can be differentiated from one another.
  */
-USB_ClassInfo_HID_Device_t Device_HID_Interface =
+USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
 {
 	.Config =
 	{
-		.InterfaceNumber              = INTERFACE_ID_MacroPad,
+		.InterfaceNumber              = INTERFACE_ID_Keyboard,
 		.ReportINEndpoint             =
 		{
-			.Address              = HID_IN_EPADDR,
+			.Address              = KEYBOARD_IN_EPADDR,
 			.Size                 = HID_EPSIZE,
 			.Banks                = 1,
 		},
-		.PrevReportINBuffer           = PrevHIDReportBuffer,
-		.PrevReportINBufferSize       = sizeof(PrevHIDReportBuffer),
+		.PrevReportINBuffer           = PrevKeyboardReportBuffer,
+		.PrevReportINBufferSize       = sizeof(PrevKeyboardReportBuffer),
+	},
+};
+
+
+// Buffer to hold the previously generated Slider report, for comparison purposes inside the HID class driver.
+static uint8_t PrevSliderReportBuffer[sizeof(USB_SliderReport_Data_t)];
+
+USB_ClassInfo_HID_Device_t Slider_HID_Interface =
+{
+	.Config =
+	{
+		.InterfaceNumber              = INTERFACE_ID_Slider,
+		.ReportINEndpoint             =
+		{
+			.Address              = SLIDER_IN_EPADDR,
+			.Size                 = HID_EPSIZE,
+			.Banks                = 1,
+		},
+		.PrevReportINBuffer           = PrevSliderReportBuffer,
+		.PrevReportINBufferSize       = sizeof(PrevSliderReportBuffer),
 	},
 };
 
@@ -101,12 +121,18 @@ int main(void)
 			}
 		}
 		if (buttonStatus[0].duration == 0) effectStoper = 0;	//Enabling the effect and modifier change after key is no longer pressed 
-		if (Counter() > 0xFF) eventEffect = 0xFF;
+		if (Counter(1) > 0xFF) eventEffect = 0xFF;
 		LedMatrixEffect(eventEffect == 0xff ? effectNum : eventEffect, effectModifier, buttonStatus);
 		effectModifier = KEY_RESERVED;
 		
-		HID_Device_USBTask(&Device_HID_Interface);
+		HID_Device_USBTask(&Keyboard_HID_Interface);
+		HID_Device_USBTask(&Slider_HID_Interface);
 		USB_USBTask();
+		if (Counter(2) >= 1)
+		{
+			SPICommunicate(&modules);
+			CounterReset(2);
+		}
 	}
 }
 
@@ -139,6 +165,7 @@ void SetupHardware()
 	/* Hardware Initialization */
 	LedMatrixInit();
 	MatrixInit();
+	SPIInit();
 	USB_Init();
 }
 
@@ -146,14 +173,14 @@ void SetupHardware()
 void EVENT_USB_Device_Connect(void)
 {
 	eventEffect = USB_CONNECT;
-	CounterReset();
+	CounterReset(1);
 }
 
 /** Event handler for the library USB Disconnection event. */
 void EVENT_USB_Device_Disconnect(void)
 {
 	eventEffect = USB_DISCONNECT;
-	CounterReset();
+	CounterReset(1);
 }
 
 /** Event handler for the library USB Configuration Changed event. */
@@ -161,23 +188,26 @@ void EVENT_USB_Device_ConfigurationChanged(void)
 {
 	bool ConfigSuccess = true;
 
-	ConfigSuccess &= HID_Device_ConfigureEndpoints(&Device_HID_Interface);
+	ConfigSuccess &= HID_Device_ConfigureEndpoints(&Keyboard_HID_Interface);
+	ConfigSuccess &= HID_Device_ConfigureEndpoints(&Slider_HID_Interface);
 
 	USB_Device_EnableSOFEvents();
 	eventEffect = ConfigSuccess ? USB_CONNECT : USB_ERROR;
-	CounterReset();
+	CounterReset(1);
 }
 
 /** Event handler for the library USB Control Request reception event. */
 void EVENT_USB_Device_ControlRequest(void)
 {
-	HID_Device_ProcessControlRequest(&Device_HID_Interface);
+	HID_Device_ProcessControlRequest(&Keyboard_HID_Interface);
+	HID_Device_ProcessControlRequest(&Slider_HID_Interface);
 }
 
 /** Event handler for the USB device Start Of Frame event. */
 void EVENT_USB_Device_StartOfFrame(void)
 {
-	HID_Device_MillisecondElapsed(&Device_HID_Interface);
+	HID_Device_MillisecondElapsed(&Keyboard_HID_Interface);
+	HID_Device_MillisecondElapsed(&Slider_HID_Interface);
 }
 
 /** HID class driver callback function for the creation of HID reports to the host.
@@ -196,42 +226,60 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
                                          void* ReportData,
                                          uint16_t* const ReportSize)
 {
-	uint8_t UsedKeyCodes = 0;
-	UsedKeyCodes = 0;
-	buttonStatus = ReadKey();
 	
-		//Getting the right keyMap based on how many times was button pressed
-	if (ButtonPress())
+	if (HIDInterfaceInfo == &Keyboard_HID_Interface)
 	{
-		uint8_t keyProfile = eeprom_read_byte(&eepromKeyProfile);
-		keyProfile = (keyProfile + 1) % PROFILES;
-		keyMap = getKeyMap(keyProfile);
-		eeprom_write_byte(&eepromKeyProfile, keyProfile);
-		CounterReset();	
-	}
-		//Key codes are separated in to global and consumer ones. Each one has its own report
-	if (keyMap.profiles[buttonStatus[UsedKeyCodes].row][buttonStatus[UsedKeyCodes].column] <= 0xAF)
-	{
-		USB_KeyReport_Data_t* KeyboardReport = (USB_KeyReport_Data_t*)ReportData;
-		*ReportSize = sizeof(USB_KeyReport_Data_t);
-		*ReportID   = HID_REPORTID_KeyboardReport;
-		while (buttonStatus[UsedKeyCodes].duration != 0)
+		uint8_t UsedKeyCodes = 0;
+		UsedKeyCodes = 0;
+		buttonStatus = ReadKey();
+	
+			//Getting the right keyMap based on how many times was button pressed
+		if (ButtonPress())
 		{
-			KeyboardReport->KeyCode[UsedKeyCodes] = (uint8_t)keyMap.profiles[buttonStatus[UsedKeyCodes].row][buttonStatus[UsedKeyCodes].column];
-			UsedKeyCodes++;
+			uint8_t keyProfile = eeprom_read_byte(&eepromKeyProfile);
+			keyProfile = (keyProfile + 1) % PROFILES;
+			keyMap = getKeyMap(keyProfile);
+			eeprom_write_byte(&eepromKeyProfile, keyProfile);
+			CounterReset(1);	
 		}
+			//Key codes are separated in to global and consumer ones. Each one has its own report
+		if (keyMap.profiles[buttonStatus[UsedKeyCodes].row][buttonStatus[UsedKeyCodes].column] <= 0xAF)
+		{
+			USB_KeyReport_Data_t* KeyboardReport = (USB_KeyReport_Data_t*)ReportData;
+			*ReportSize = sizeof(USB_KeyReport_Data_t);
+			*ReportID   = HID_REPORTID_KeyboardReport;
+			while (buttonStatus[UsedKeyCodes].duration != 0)
+			{
+				KeyboardReport->KeyCode[UsedKeyCodes] = (uint8_t)keyMap.profiles[buttonStatus[UsedKeyCodes].row][buttonStatus[UsedKeyCodes].column];
+				UsedKeyCodes++;
+			}
 		
-	}
-	else if (keyMap.profiles[buttonStatus[UsedKeyCodes].row][buttonStatus[UsedKeyCodes].column] <= 0xFF)
-	{
-		USB_ConsumerReport_Data_t* ConsumerReport = (USB_ConsumerReport_Data_t*)ReportData;
-		*ReportSize = sizeof(USB_ConsumerReport_Data_t);
-		*ReportID   = HID_REPORTID_ConsumerReport;
-		if(buttonStatus[0].duration != 0)
+		}
+		else if (keyMap.profiles[buttonStatus[UsedKeyCodes].row][buttonStatus[UsedKeyCodes].column] <= 0xFF)
 		{
-			ConsumerReport->ConsumerKey = (uint8_t)keyMap.profiles[buttonStatus[0].row][buttonStatus[0].column];
+			USB_ConsumerReport_Data_t* ConsumerReport = (USB_ConsumerReport_Data_t*)ReportData;
+			*ReportSize = sizeof(USB_ConsumerReport_Data_t);
+			*ReportID   = HID_REPORTID_ConsumerReport;
+			if(buttonStatus[0].duration != 0)
+			{
+				ConsumerReport->ConsumerKey = (uint8_t)keyMap.profiles[buttonStatus[0].row][buttonStatus[0].column];
+			}
 		}
 	}
+	else if (HIDInterfaceInfo == &Slider_HID_Interface)
+	{
+		USB_SliderReport_Data_t* SliderReport = (USB_SliderReport_Data_t*)ReportData;
+		*ReportSize = sizeof(USB_SliderReport_Data_t);
+		for (int i = 0; i < NUM_OF_MODULES; i++)
+		{
+			if (modules[i].ID == 0x01)
+			{
+				for (int x = 0; x < 3; x++)SliderReport->Value[x] = modules[i].data[x];
+			}
+		}
+		Counting(2);
+	}
+	
 	return false;
 
 	//if (UsedKeyCodes)
@@ -266,12 +314,13 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 			getKeyMap((uint8_t)FeatureReport->Value);
 		break;
 		case FEATR_MAPPING:
-			eeprom_write_word(&eepromProfileSelect[FeatureReport->Mapping[0]][FeatureReport->Mapping[1]][FeatureReport->Mapping[2]],FeatureReport->Value);
-			eventEffect = FeatureReport->Mapping[2] + FeatureReport->Mapping[1] * 4;
+			eeprom_write_word(&eepromProfileSelect[FeatureReport->Mapping[0]][FeatureReport->Mapping[1] >= 4 ? 1 : 0][FeatureReport->Mapping[1]%4],FeatureReport->Value);
+			//eventEffect = FeatureReport->Mapping[2] + FeatureReport->Mapping[1] * 4;
+			eventEffect = FeatureReport->Mapping[1];
 			getKeyMap(FeatureReport->Mapping[0]);
 		break;
 	}
-	CounterReset();	
+	CounterReset(1);	
 }           
 
 Array_t getKeyMap(uint8_t keyProfile)

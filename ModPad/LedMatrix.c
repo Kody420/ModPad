@@ -84,7 +84,7 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 	switch(effectNum)
 	{
 		case KEY_EFFECT1:		//All off
-			CounterReset();
+			CounterReset(1);
 			//Zero brightness fix for only this effect. Would like to fix it everywhere
 			//PORTD &= ~((1 << COL_LED1) | (1 << COL_LED2) | (1 << COL_LED3) | (1 << COL_LED4));
 			if (effectChange)
@@ -101,7 +101,7 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 		break;
 		
 		case KEY_EFFECT2:		//All on with same brightness
-			CounterReset();
+			CounterReset(1);
 			if (effectChange)
 			{
 				for (int i = 0;i < LED_COLUMN_SIZE;i++)
@@ -116,9 +116,9 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 		
 		case KEY_EFFECT3:		//Breathing from 0 to max
 			if (effectChange)brightness[0][0] = maxBrightness/2;
-			if (Counter() > 3)
+			if (Counter(1) > 3)
 			{
-				CounterReset();
+				CounterReset(1);
 				if(brightness[0][0] == 0 || brightness[0][0] == maxBrightness) delta = -delta;
 				if (maxBrightness != 0)brightness[0][0] += delta;	//if for edge case when maxBrightness is 0
 				for (int i = 0;i < LED_COLUMN_SIZE;i++)
@@ -137,9 +137,9 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 				brightness[buttonStatus[activeLed].row][buttonStatus[activeLed].column] = maxBrightness;
 				activeLed++;
 			}
-			if (Counter() > 3)
+			if (Counter(1) > 3)
 			{
-				CounterReset();
+				CounterReset(1);
 				for (int i = 0;i < LED_COLUMN_SIZE;i++)
 				{
 					for (int x = 0;x < LED_ROW_SIZE;x++)
@@ -151,7 +151,7 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 		break;
 		
 		case KEY_EFFECT5:		//Custom brightness levels
-			CounterReset();
+			CounterReset(1);
 			for (int x = 0;x < LED_ROW_SIZE;x++)
 			{
 				for (int i = 0;i < LED_COLUMN_SIZE;i++)
@@ -161,9 +161,9 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 			}
 		break;
 		case KEY_EFFECT6:		//Random
-		if (Counter() > 2)
+		if (Counter(1) > 2)
 		{
-			CounterReset();
+			CounterReset(1);
 			for (int x = 0;x < LED_ROW_SIZE;x++)
 			{
 				for (int i = 0;i < LED_COLUMN_SIZE;i++)
@@ -210,7 +210,7 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 	//Refreshing of leds
 ISR(TIMER0_OVF_vect){
 	TCNT1L = 0xFF;
-	Counting();
+	Counting(1);
 	LedRefresh();
 }
 

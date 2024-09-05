@@ -144,6 +144,18 @@
     <Compile Include="Includes\Delay.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="Includes\MySPI.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Includes\MySPI.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Includes\SPIcom.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Includes\SPIcom.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="Includes\usb_hid_keys.h">
       <SubType>compile</SubType>
     </Compile>

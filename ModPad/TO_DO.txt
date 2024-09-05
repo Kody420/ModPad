@@ -27,9 +27,10 @@ Better key codes
 	-there are starting to be too many different "types" of key codes so it might be necessery to put a identifier to each keycode
 	-that mean putting each key code in to struct with key code value and identifier (global, consumer,key modifier, effent, effect modifier, event)
 
-Second interface for module
-
 Macro keys
 	- Be able to send macros (button combos)
+
+New feature reports
+	-
 
 

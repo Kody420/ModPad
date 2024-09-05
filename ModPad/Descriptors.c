@@ -45,7 +45,7 @@
  *
  *  This descriptor describes the multiple possible reports of the HID interface's report structure.
  */
-const USB_Descriptor_HIDReport_Datatype_t PROGMEM HIDReport[] =
+const USB_Descriptor_HIDReport_Datatype_t PROGMEM KeyboardReport[] =
 {		
 	HID_RI_USAGE_PAGE(8, 0x01),
 	HID_RI_USAGE(8, 0x06),                    
@@ -59,7 +59,6 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM HIDReport[] =
 		HID_RI_REPORT_SIZE(8, 0x01),                
 		HID_RI_REPORT_COUNT(8, 0x08),               
 	HID_RI_INPUT(8, 0x02),
-	
 		HID_RI_REPORT_COUNT(8, 0x03),               
 		HID_RI_REPORT_SIZE(8, 0x08),				
 		HID_RI_LOGICAL_MINIMUM(8, 0x00),            
@@ -77,7 +76,7 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM HIDReport[] =
 		HID_RI_REPORT_ID(8, HID_REPORTID_ConsumerReport),
 		HID_RI_USAGE_PAGE(8, 0x0C),                 
 		HID_RI_LOGICAL_MINIMUM(8, 0x00),           
-		HID_RI_LOGICAL_MAXIMUM(16, 0xFF),
+		HID_RI_LOGICAL_MAXIMUM(8, 0xFF),
 		HID_RI_REPORT_SIZE(8, 0x08),          
 		HID_RI_REPORT_COUNT(8, 0x01),				             
 		HID_RI_USAGE_MINIMUM(8, 0x00),
@@ -104,6 +103,33 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM HIDReport[] =
 	HID_RI_FEATURE(8, 0x02),
 	HID_RI_END_COLLECTION(0),
 	
+};
+const USB_Descriptor_HIDReport_Datatype_t PROGMEM SliderReport[] =
+{
+	/*
+	HID_RI_USAGE_PAGE(8, 0x01),
+	HID_RI_USAGE(8, 0x06),
+	HID_RI_COLLECTION(8, 0x01),
+		HID_RI_USAGE_PAGE(8, 0x07),
+		HID_RI_REPORT_COUNT(8, 0x03),
+		HID_RI_REPORT_SIZE(8, 0x08),
+		HID_RI_LOGICAL_MINIMUM(8, 0x00),
+		HID_RI_LOGICAL_MAXIMUM(8, 0x81),
+		HID_RI_USAGE_MINIMUM(8, 0x00),
+		HID_RI_USAGE_MAXIMUM(8, 0x81),
+	HID_RI_INPUT(8, 0x00),
+	HID_RI_END_COLLECTION(0),
+	*/
+	HID_RI_USAGE_PAGE(8, 0x0C),
+	HID_RI_USAGE(8, 0xE1),
+	HID_RI_COLLECTION(8, 0x01),
+		HID_RI_USAGE(8, 0xE0),
+		HID_RI_LOGICAL_MINIMUM(8, 0x00),
+		HID_RI_LOGICAL_MAXIMUM(8, 0x64),
+		HID_RI_REPORT_SIZE(8, 0x08),
+		HID_RI_REPORT_COUNT(8, 0x03),
+	HID_RI_INPUT(8, 0x02),
+	HID_RI_END_COLLECTION(0),
 };
 
 /** Device descriptor structure. This descriptor, located in FLASH memory, describes the overall
@@ -145,7 +171,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.Header                 = {.Size = sizeof(USB_Descriptor_Configuration_Header_t), .Type = DTYPE_Configuration},
 
 			.TotalConfigurationSize = sizeof(USB_Descriptor_Configuration_t),
-			.TotalInterfaces        = 1,
+			.TotalInterfaces        = 2,
 
 			.ConfigurationNumber    = 1,
 			.ConfigurationStrIndex  = NO_DESCRIPTOR,
@@ -155,11 +181,11 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.MaxPowerConsumption    = USB_CONFIG_POWER_MA(100)
 		},
 
-	.HID_Interface =
+	.HID_KeyboardInterface =
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
 
-			.InterfaceNumber        = INTERFACE_ID_MacroPad,
+			.InterfaceNumber        = INTERFACE_ID_Keyboard,
 			.AlternateSetting       = 0x00,
 
 			.TotalEndpoints         = 1,
@@ -171,7 +197,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.InterfaceStrIndex      = NO_DESCRIPTOR
 		},
 
-	.HID_HIDData =
+	.HID_KeyboardData =
 		{
 			.Header                 = {.Size = sizeof(USB_HID_Descriptor_HID_t), .Type = HID_DTYPE_HID},
 
@@ -179,36 +205,37 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.CountryCode            = 0x00,
 			.TotalReportDescriptors = 1,
 			.HIDReportType          = HID_DTYPE_Report,
-			.HIDReportLength        = sizeof(HIDReport)
+			.HIDReportLength        = sizeof(KeyboardReport)
 		},
 
-	.HID_ReportINEndpoint =
+	.HID_KeyboardINEndpoint =
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = HID_IN_EPADDR,
+			.EndpointAddress        = KEYBOARD_IN_EPADDR,
 			.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = HID_EPSIZE,
 			.PollingIntervalMS      = 0x05
 		},
-	/*
-	.HID_Interface2 =
+	
+	
+	.HID_SliderInterface =
 	{
 		.Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
 
-		.InterfaceNumber        = INTERFACE_ID_test,
+		.InterfaceNumber        = INTERFACE_ID_Slider,
 		.AlternateSetting       = 0x00,
 
 		.TotalEndpoints         = 1,
 
 		.Class                  = HID_CSCP_HIDClass,
 		.SubClass               = HID_CSCP_NonBootSubclass,
-		.Protocol               = HID_CSCP_KeyboardBootProtocol,
+		.Protocol               = HID_CSCP_NonBootProtocol,
 
 		.InterfaceStrIndex      = NO_DESCRIPTOR
 	},
 	
-	.HID_HIDData2 =
+	.HID_SliderData =
 	{
 		.Header                 = {.Size = sizeof(USB_HID_Descriptor_HID_t), .Type = HID_DTYPE_HID},
 
@@ -216,20 +243,18 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 		.CountryCode            = 0x00,
 		.TotalReportDescriptors = 1,
 		.HIDReportType          = HID_DTYPE_Report,
-		.HIDReportLength        = sizeof(HIDReport)
+		.HIDReportLength        = sizeof(SliderReport)
 	},
 	
-	.HID_ReportOUTEndpoint =
+	.HID_SliderINEndpoint =
 	{
 		.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-		.EndpointAddress        = HID_OUT_EPADDR,
+		.EndpointAddress        = SLIDER_IN_EPADDR,
 		.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 		.EndpointSize           = HID_EPSIZE,
-		.PollingIntervalMS      = 0x05
+		.PollingIntervalMS      = 0x0A
 	},
-	
-	*/	
 };
 
 /** Language descriptor structure. This descriptor, located in FLASH memory, is returned when the host requests
@@ -295,12 +320,30 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
 
 			break;
 		case HID_DTYPE_HID:
-			Address = &ConfigurationDescriptor.HID_HIDData;
-			Size    = sizeof(USB_HID_Descriptor_HID_t);
+			switch (wIndex)
+			{
+				case INTERFACE_ID_Keyboard:
+				Address = &ConfigurationDescriptor.HID_KeyboardData;
+				Size    = sizeof(USB_HID_Descriptor_HID_t);
+				break;
+				case INTERFACE_ID_Slider:
+				Address = &ConfigurationDescriptor.HID_SliderData;
+				Size    = sizeof(USB_HID_Descriptor_HID_t);
+				break;
+			}
 			break;
 		case HID_DTYPE_Report:
-			Address = &HIDReport;
-			Size    = sizeof(HIDReport);
+			switch (wIndex)
+			{
+				case INTERFACE_ID_Keyboard:
+				Address = &KeyboardReport;
+				Size    = sizeof(KeyboardReport);
+				break;
+				case INTERFACE_ID_Slider:
+				Address = &SliderReport;
+				Size    = sizeof(SliderReport);
+				break;
+			}
 			break;
 	}
 

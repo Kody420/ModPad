@@ -20,10 +20,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static volatile uint16_t delay = 0;	//Value that is being counted
+static volatile uint16_t delay1 = 0;	//Value that is being counted
+static volatile uint16_t delay2 = 0;	//Value that is being counted
 
-void Counting(void);	//Increase delay by one
-void CounterReset(void);	//Reset delay to zero
-uint16_t Counter(void); //Get the current value of delay
+void Counting(uint8_t delay);	//Increase delay by one
+void CounterReset(uint8_t delay);	//Reset delay to zero
+uint16_t Counter(uint8_t delay); //Get the current value of delay
 
 #endif /* DELAY_H_ */

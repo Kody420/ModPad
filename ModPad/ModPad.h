@@ -43,9 +43,11 @@
 		#include "Descriptors.h"
 		#include "ButtonMatrix.h"
 		#include "LedMatrix.h"
+		#include "SPIcom.h"
 		
 		#include <Includes/usb_hid_keys.h>
 		#include <Includes/Delay.h>
+		
 		
 		#include <lufa/LUFA/Drivers/USB/USB.h>
 		#include <lufa/LUFA/Platform/Platform.h>
@@ -60,6 +62,7 @@
 		#define FEATR_PROFILE 0x03
 		#define FEATR_MAPPING 0x04
 		//todo
+		#define FEATR_PING 0x05
 		#define FEATR_ACTIVE_PROFILES 0x06
 			
 
@@ -82,6 +85,11 @@
 			uint8_t Modifier;
 			uint8_t KeyCode[3];
 		} ATTR_PACKED USB_KeyReport_Data_t;
+		
+		typedef struct
+		{
+			uint8_t Value[3];
+		} ATTR_PACKED USB_SliderReport_Data_t;
 		
 		typedef struct{
 			uint16_t profiles[ROW_SIZE][COLUMN_SIZE];
