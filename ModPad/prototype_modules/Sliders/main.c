@@ -11,7 +11,7 @@
 #include <stdbool.h>
 
 #include "SPI_AVR8.h"
-
+#include "Charlieplexing.h"
 
 	//Macros:
 		//For ADMUX register to select pin
@@ -22,15 +22,15 @@
 		
 		#define MODULE_ID 0x01	//max is 0x7f, first bit is reserved for status
 		
-		#define SPI_STATUS 0x01
-		#define SPI_DATA 0x02
+		#define SPI_STATUS 0xA0
+		#define SPI_DATA 0xA1
 		#define SPI_ERROR 0xFF
 	//Variables:
 	
 
 void SlidersInit(){
 	ADMUX |= (1 << REFS0) | (1 << ADLAR);	//AVCC reference with external capacitor at AREF pin, left adjusted result 
-	ADCSRA |= (1 << ADEN) | (1 << ADPS2);	//Turn ADC on, division factor at 16
+	ADCSRA |= (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1);	//Turn ADC on, division factor at 16
 }
 			
 	
@@ -44,12 +44,14 @@ uint8_t* ReadSliders(){
 		while(ADCSRA & (1 << ADSC));
 		//Remapping to 0-100
 		uint16_t values = ((ADCH >> 1) * 100 + 63) / 127;
-		send[activeSlider] = values;
+		//uint16_t values = (ADCH * 100) / 255;
+		send[activeSlider] = (uint8_t) values;
 	}
 	return send;
 }
 int main(void)
 {
+	CharliPlexInit();
 	SlidersInit();
 	SPI_Init(SPI_SPEED_FCPU_DIV_8 | SPI_ORDER_MSB_FIRST  | SPI_MODE_SLAVE);
 	static uint8_t prevSliderValues[NUM_OF_SLIDERS];
@@ -65,6 +67,8 @@ int main(void)
 				prevSliderValues[i] = sliderValues[i];
 			}
 		}
+		CharliPlexEffect(KEY_EFFECT4, sliderValues);
+		
 		if (!(PINB & (1 << SS)))
 		{
 			switch(SPDR)
