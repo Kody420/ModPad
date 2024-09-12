@@ -72,7 +72,7 @@
 		{
 			uint16_t Command;
 			uint16_t Value;
-			uint8_t Mapping[3];	// {Profile, Row, Column}
+			uint8_t Optional[3];	// {Profile, Key}
 		} ATTR_PACKED USB_FeatureReport_Data_t;
 		
 		typedef struct
@@ -97,6 +97,7 @@
 	
 		Array_t keyMap;
 		pressedButton_t* buttonStatus;
+		module modules[3];
 		
 		uint8_t eventEffect = 0;
 		uint16_t effectNum = 0;

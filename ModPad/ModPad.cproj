@@ -144,18 +144,6 @@
     <Compile Include="Includes\Delay.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="Includes\MySPI.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="Includes\MySPI.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="Includes\SPIcom.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="Includes\SPIcom.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="Includes\usb_hid_keys.h">
       <SubType>compile</SubType>
     </Compile>
@@ -169,6 +157,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="ModPad.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="SPIcom.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="SPIcom.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

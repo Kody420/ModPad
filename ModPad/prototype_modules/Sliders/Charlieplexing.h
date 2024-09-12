@@ -9,7 +9,7 @@
 #ifndef CHARLIEPLEXING_H_
 #define CHARLIEPLEXING_H_
 	
-	#define F_CPU 8000000
+	#define F_CPU 16000000
 	//Includes:
 		#include <avr/io.h>
 		#include <avr/interrupt.h>
@@ -30,7 +30,7 @@
 	
 	//Variables:
 		uint8_t brightness[2][3];
-		//uint8_t delay1 = 0;
+		
 	//Functions:
 		void CharliPlexInit(void);
 		void CharliPlexEffect(uint16_t effectNum, uint8_t* sliderValues);

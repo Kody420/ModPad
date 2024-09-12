@@ -6,6 +6,7 @@
  *  Author: Kody
  */ 
 
+	ModPad
 Board firmware
 	-Make the board firmware so that the matrix functions doesn't have to write directly to registers and be pin dipendent
 	lsb usb
@@ -30,7 +31,11 @@ Better key codes
 Macro keys
 	- Be able to send macros (button combos)
 
-New feature reports
-	-
 
+	Sliders
+Fix unstable ADC
+	-Could use more samples to smooth it out
+	-Measure AVCC and sliding potenciometrs accurately
 
+Turn off leds in effect 4 (Slider position activated)
+	-Write 0 to brightness array for leds that are not lit

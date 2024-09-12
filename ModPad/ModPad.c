@@ -30,6 +30,7 @@
 
 #include "ModPad.h"
 
+module modules[3];
 // Buffer to hold the previously generated Keyboard report, for comparison purposes inside the HID class driver.
 static uint8_t PrevKeyboardReportBuffer[MAX(sizeof(USB_ConsumerReport_Data_t), sizeof(USB_KeyReport_Data_t))];
 
@@ -128,9 +129,12 @@ int main(void)
 		HID_Device_USBTask(&Keyboard_HID_Interface);
 		HID_Device_USBTask(&Slider_HID_Interface);
 		USB_USBTask();
-		if (Counter(2) >= 1)
+		//This should check how many times a poll for slider interface was initiated and then get data over SPI from all modules. But it doesn't work. Polling is set to 20 ms and 
+		//even with 150 * 20 ms the sliders are really responsive. Only explanation is that the function CALLBACK_HID_Device_CreateHIDReport is called more often than 20 ms with slider
+		//interface arguments.
+		if (Counter(2) > 150)
 		{
-			SPICommunicate(&modules);
+			SPIGetData(modules);
 			CounterReset(2);
 		}
 	}
@@ -274,12 +278,11 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		{
 			if (modules[i].ID == 0x01)
 			{
+				Counting(2);
 				for (int x = 0; x < 3; x++)SliderReport->Value[x] = modules[i].data[x];
 			}
 		}
-		Counting(2);
 	}
-	
 	return false;
 
 	//if (UsedKeyCodes)
@@ -314,10 +317,9 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 			getKeyMap((uint8_t)FeatureReport->Value);
 		break;
 		case FEATR_MAPPING:
-			eeprom_write_word(&eepromProfileSelect[FeatureReport->Mapping[0]][FeatureReport->Mapping[1] >= 4 ? 1 : 0][FeatureReport->Mapping[1]%4],FeatureReport->Value);
-			//eventEffect = FeatureReport->Mapping[2] + FeatureReport->Mapping[1] * 4;
-			eventEffect = FeatureReport->Mapping[1];
-			getKeyMap(FeatureReport->Mapping[0]);
+			eeprom_write_word(&eepromProfileSelect[FeatureReport->Optional[0]][FeatureReport->Optional[1] >= 4 ? 1 : 0][FeatureReport->Optional[1]%4],FeatureReport->Value);
+			getKeyMap(FeatureReport->Optional[0]);
+			eventEffect = FeatureReport->Optional[1];
 		break;
 	}
 	CounterReset(1);	
@@ -337,4 +339,3 @@ Array_t getKeyMap(uint8_t keyProfile)
 	}
 	return keyMap;
 }
-

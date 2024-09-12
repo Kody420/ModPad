@@ -16,13 +16,14 @@ void CharliPlexInit(){
 }
 
 void CharliPlexEffect(uint16_t effectNum, uint8_t* sliderValues){
+	//Effects copied from LedMatrix.c
 	static uint8_t delta = 1;
 	static uint8_t maxBrightness = 254;
 	//Connected:			//Written:
 	//{{D5, D4, D2},		{{D4, D2, D3},
 	// {D3, D8, D9}};	     {D8, D9, D5}};
 	static uint8_t targetBrightness [2][3] = {{0,0,0},
-											  {0,0,0}};
+											  {0,0,0}};								  
 	static uint16_t	prevEffectNum = 0;
 	static uint16_t pseudoRandom = 1;
 
@@ -34,7 +35,7 @@ void CharliPlexEffect(uint16_t effectNum, uint8_t* sliderValues){
 		prevEffectNum = effectNum;
 		effectChange = true;
 	}
-		//Effect copied from 
+		
 	switch(effectNum)
 	{
 		case KEY_EFFECT1:		//All off
@@ -135,36 +136,36 @@ ISR(TIMER0_OVF_vect){
 	OCR0B = OCR0A = brightness[currentLed < 3 ? 0 : 1][currentLed%3];
 	switch(currentLed){
 	case 0:
-		TCCR0A &= ~(1 << COM0A1);
-		DDRD |= (1 << ledPins[0]);
-		PORTD |= (1 << ledPins[0]);
-		
-		DDRD |= (1 << ledPins[1]);
-		TCCR0A |= (1 << COM0B1);  
-		
 		DDRD &= ~(1 << ledPins[2]);
 		PORTD &= ~(1 << ledPins[2]);
+	
+		TCCR0A &= ~(1 << COM0A1);
+		DDRD |= (1 << ledPins[1]);
+		TCCR0A |= (1 << COM0B1);
+	
+		DDRD |= (1 << ledPins[0]);
+		PORTD |= (1 << ledPins[0]);
 	break;
 	case 2:
-		DDRD |= (1 << ledPins[2]);
-		PORTD |= (1 << ledPins[2]);
-
-		PORTD &= ~(1 << ledPins[1]);
-		
 		DDRD &= ~(1 << ledPins[0]);
 		PORTD &= ~(1 << ledPins[0]);
-	break;
-	case 4:
-		TCCR0A &= ~(1 << COM0B1);  
+		
+		PORTD &= ~(1 << ledPins[1]);
+
 		DDRD |= (1 << ledPins[2]);
 		PORTD |= (1 << ledPins[2]);
-
+	break;
+	case 4:	
+		TCCR0A &= ~(1 << COM0B1);
+		DDRD &= ~(1 << ledPins[1]);
+		PORTD &= ~(1 << ledPins[1]);
+		
 		DDRD |= (1 << ledPins[0]);
 		PORTD &= ~(1 << ledPins[0]);
 		TCCR0A |= (1 << COM0A1);
 
-		DDRD &= ~(1 << ledPins[1]);
-		PORTD &= ~(1 << ledPins[1]);
+		DDRD |= (1 << ledPins[2]);
+		PORTD |= (1 << ledPins[2]);
 	break;
 	default:
 		OCR0B = OCR0A = 0xff - brightness[currentLed < 3 ? 0 : 1][currentLed % 3];

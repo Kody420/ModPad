@@ -25,16 +25,21 @@
 		#define SS3 PD2
 		
 		#define NUM_OF_MODULES 3
+		
+		#define SPI_STATUS 0xA0
+		#define SPI_DATA 0xA1
+		#define SPI_ERROR 0xF
 
 	//Variables:
 		typedef struct{
 			uint8_t ID;
 			uint8_t data[3];
 		}module;
-		module modules[3];
 	//Functions:
 		void SPIInit(void);
-		void SPICommunicate(module *modules);
-		void SPIDelay(void);
+		void SPIGetData(module *modules);
+		
+			//Delay to wait for module to prepare for recieving or sending data
+		void SPIDelay(uint16_t delay);
 		
 #endif /* SPICOM_H_ */
