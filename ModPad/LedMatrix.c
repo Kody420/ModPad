@@ -220,24 +220,20 @@ ISR(TIMER0_OVF_vect){
 	by LED_COLUMN_SIZE - 1 so basically move back one column. (Cant move back by -1 cos for some reason it wont do modulo of negative number)
 */
 void LedRefresh(void){
-	
-	static int activeColumn = 0;
-	PORTD &= ~(1 << pins.ledCol[(activeColumn + LED_COLUMN_SIZE + 2) % LED_COLUMN_SIZE]);
-	OCR0B = brightness[0][activeColumn];
-	OCR1BL = brightness[1][activeColumn];
-	PORTD |= (1 << pins.ledCol[(activeColumn + LED_COLUMN_SIZE - 1) % LED_COLUMN_SIZE]);
-	activeColumn = (activeColumn + 1) % LED_COLUMN_SIZE;
-	/*
-	this actually turns off the LEDs but when brightness reaches 0 sometimes there is a flash to max brightness. Also button activated effect gets broken.
 	static int activeColumn = 0;
 	PORTD &= ~(1 << pins.ledCol[(activeColumn + LED_COLUMN_SIZE - 1) % LED_COLUMN_SIZE]);
-	TCCR0A |= (1 << COM0B1) | (1 << COM0B0);
-	TCCR1A |= (1 << COM1B1) | (1 << COM1B0);
-	OCR0B = brightness[0][activeColumn];
-	if (OCR0B == 0)TCCR0A &= ~((1 << COM0B1) | (1 << COM0B0));
-	OCR1BL = brightness[1][activeColumn];
-	if (OCR1BL == 0)TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
+	if (brightness[0][activeColumn] == 0)TCCR0A &= ~((1 << COM0B1) | (1 << COM0B0));
+	else 
+	{
+		OCR0B = brightness[0][activeColumn];
+		TCCR0A |= (1 << COM0B1) | (1 << COM0B0);
+	}
+	if (brightness[1][activeColumn] == 0)TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
+	else
+	{
+		OCR1BL = brightness[1][activeColumn];
+		TCCR1A |= (1 << COM1B1) | (1 << COM1B0);
+	}
 	PORTD |= (1 << pins.ledCol[activeColumn]);
 	activeColumn = (activeColumn + 1) % LED_COLUMN_SIZE;
-	*/
 }
