@@ -15,8 +15,11 @@ uint8_t EEMEM eepromMaxBrightness;
 uint16_t CharliPlexInit(){
 	//Timer0 setup
 	TCCR0A |= (1 << WGM01) | (1 << WGM00);	//Fast PWM
-	TCCR0B |= (1 << CS01) | (1 << CS00);	//Prescaler 64
-	TIMSK0 |= (1 << TOIE0);		//Interrupt on overcurrentLed
+	TCCR0B |= (1 << CS01);	//Prescaler 8
+	
+	TCCR2A |= (1 << WGM21) | (1 << WGM20);	//Fast PWM
+	TCCR2B |= (1 << CS21) | (1 << CS20);	//Prescaler 64
+	TIMSK2 |= (1 << TOIE2);		//Interrupt on overcurrentLed
 	
 	maxBrightness = eeprom_read_byte(&eepromMaxBrightness);
 	sei();
@@ -154,47 +157,89 @@ void CharliPlexEffect(uint16_t effectNum, uint8_t* sliderValues){
 	}
 }
 
-ISR(TIMER0_OVF_vect){
+ISR(TIMER2_OVF_vect){
 	uint8_t ledPins[] = {LEDA1, LEDB2, LED3};
 	static uint8_t currentLed = 0;
+	//Reseting pins to highZ at the start of each addressing
+	DDRD &= ~((1 << ledPins[0]) | (1 << ledPins[1]) | (1 << ledPins[2]));
+	PORTD &= ~((1 << ledPins[0]) | (1 << ledPins[1]) | (1 << ledPins[2]));
+	TCCR0A &= ~((1 << COM0A1) | (1 << COM0A0) | (1 << COM0B1) | (1 << COM0B0));
 	
-	OCR0B = OCR0A = brightness[currentLed < 3 ? 0 : 1][currentLed%3];
+	//Offsetting array brightness to match LEDs in reality
+	//Connected irl:			//Written in brightness:
+	//{{D5, D4, D2},	<=		{{D4, D2, D3},
+	// {D3, D8, D9}};			{D8, D9, D5}};
+	uint8_t offset = (currentLed + 2) % 6;	
+	uint8_t currentBrightness = brightness[offset < 3 ? 0 : 1][offset%3];
+	OCR0B = OCR0A = currentBrightness;
+	
+	//Setting the pin configuration for each led separately because i can't figure any other way
 	switch(currentLed){
 		case 0:
-		DDRD &= ~(1 << ledPins[2]);
-		PORTD &= ~(1 << ledPins[2]);
-		
-		TCCR0A &= ~(1 << COM0A1);
-		DDRD |= (1 << ledPins[1]);
-		TCCR0A |= (1 << COM0B1);
-		
-		DDRD |= (1 << ledPins[0]);
-		PORTD |= (1 << ledPins[0]);
+			if (currentBrightness > 10)
+			{
+				DDRD |= (1 << ledPins[0]);
+				PORTD |= (1 << ledPins[0]);
+			
+				DDRD |= (1 << ledPins[1]);
+				TCCR0A |= (1 << COM0B1)  | (1 << COM0B0);
+			}
 		break;
+		
+		case 1:
+			if (currentBrightness > 10)
+			{
+				DDRD |= (1 << ledPins[0]);
+				PORTD &= ~(1 << ledPins[0]);
+				
+				DDRD |= (1 << ledPins[1]);
+				TCCR0A |= (1 << COM0B1);
+			}
+		break;
+		
 		case 2:
-		DDRD &= ~(1 << ledPins[0]);
-		PORTD &= ~(1 << ledPins[0]);
-		
-		PORTD &= ~(1 << ledPins[1]);
-
-		DDRD |= (1 << ledPins[2]);
-		PORTD |= (1 << ledPins[2]);
+			if (currentBrightness > 10)
+			{
+				DDRD |= (1 << ledPins[2]);
+				PORTD |= (1 << ledPins[2]);
+				
+				DDRD |= (1 << ledPins[1]);
+				TCCR0A |= (1 << COM0B1)  | (1 << COM0B0);
+			}
 		break;
+		
+		case 3:
+			if (currentBrightness > 10)
+			{
+				DDRD |= (1 << ledPins[2]);
+				PORTD &= ~(1 << ledPins[2]);
+				
+				DDRD |= (1 << ledPins[1]);
+				TCCR0A |= (1 << COM0B1);
+			}
+		break;
+		
 		case 4:
-		TCCR0A &= ~(1 << COM0B1);
-		DDRD &= ~(1 << ledPins[1]);
-		PORTD &= ~(1 << ledPins[1]);
-		
-		DDRD |= (1 << ledPins[0]);
-		PORTD &= ~(1 << ledPins[0]);
-		TCCR0A |= (1 << COM0A1);
-
-		DDRD |= (1 << ledPins[2]);
-		PORTD |= (1 << ledPins[2]);
+			if (currentBrightness > 10)
+			{
+				DDRD |= (1 << ledPins[2]);
+				PORTD |= (1 << ledPins[2]);
+				
+				DDRD |= (1 << ledPins[0]);
+				TCCR0A |= (1 << COM0A1) | (1 << COM0A0);
+			}
 		break;
-		default:
-		OCR0B = OCR0A = 0xff - brightness[currentLed < 3 ? 0 : 1][currentLed % 3];
-		PORTD &= ~((1 << ledPins[0]) | (1 << ledPins[1]) | (1 << ledPins[2]));
+		
+		case 5:
+			if (currentBrightness > 10)
+			{
+				DDRD |= (1 << ledPins[2]);
+				PORTD &= ~(1 << ledPins[2]);
+				
+				DDRD |= (1 << ledPins[0]);
+				TCCR0A |= (1 << COM0A1);
+			}
+		break;
 	}
 	currentLed = (currentLed + 1) % 6;
 	Counting(1);
