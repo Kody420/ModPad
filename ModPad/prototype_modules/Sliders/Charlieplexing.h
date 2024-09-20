@@ -16,6 +16,7 @@
 		#include <stdbool.h>
 		#include <util/delay.h>
 		#include <limits.h>
+		#include <avr/eeprom.h>
 		#include "Delay.h"
 		#include "../../Includes/usb_hid_keys.h"
 	
@@ -27,12 +28,14 @@
 		#define NUM_OF_LEDS 6
 		#define LED_COLUMN_SIZE 3
 		#define LED_ROW_SIZE 2
-	
+		
+	//EEPROM variables:
+		extern uint16_t EEMEM eepromEffectNum;
 	//Variables:
-		uint8_t brightness[2][3];
 		
 	//Functions:
-		void CharliPlexInit(void);
+		uint16_t CharliPlexInit(void);
 		void CharliPlexEffect(uint16_t effectNum, uint8_t* sliderValues);
+		void CharliPLexModifier(uint16_t modifierEffect);
 		
 #endif /* CHARLIEPLEXING_H_ */
