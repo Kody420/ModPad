@@ -98,7 +98,7 @@
 		Array_t keyMap;
 		pressedButton_t* buttonStatus;
 		module modules[3];
-		
+
 		uint8_t eventEffect = 0;
 		uint16_t effectNum = 0;
 		uint16_t effectModifier = KEY_RESERVED;
@@ -124,6 +124,7 @@
 				{KEY_MEDIA_PREVIOUSSONG, KEY_MEDIA_NEXTSONG, KEY_MEDIA_VOLUMEDOWN, KEY_SCROLLLOCK}
 			},
 		};
+		
 	//Function Prototypes:
 		void SetupHardware(void);
 

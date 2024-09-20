@@ -44,7 +44,7 @@
 		LedMatrxPins_t pins;
 
 		uint8_t brightness [LED_ROW_SIZE][LED_COLUMN_SIZE];
-	
+
 	//Function Prototypes:	
 		/*
 		Function description:

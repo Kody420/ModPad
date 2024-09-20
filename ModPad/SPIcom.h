@@ -38,7 +38,7 @@
 	//Functions:
 		void SPIInit(void);
 		void SPIGetData(module *modules);
-		
+		void SPISendData(uint16_t command, uint16_t data, uint8_t position);
 			//Delay to wait for module to prepare for recieving or sending data
 		void SPIDelay(uint16_t delay);
 		

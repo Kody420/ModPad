@@ -20,4 +20,5 @@ void CounterReset(uint8_t delay){
 uint16_t Counter(uint8_t delay){
 	if (delay == 1)return delay1;
 	else if (delay == 2)return delay2++;
+	return 0;
 }

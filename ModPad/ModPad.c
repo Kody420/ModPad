@@ -30,7 +30,6 @@
 
 #include "ModPad.h"
 
-module modules[3];
 // Buffer to hold the previously generated Keyboard report, for comparison purposes inside the HID class driver.
 static uint8_t PrevKeyboardReportBuffer[MAX(sizeof(USB_ConsumerReport_Data_t), sizeof(USB_KeyReport_Data_t))];
 
@@ -127,7 +126,7 @@ int main(void)
 		effectModifier = KEY_RESERVED;
 		
 		HID_Device_USBTask(&Keyboard_HID_Interface);
-		HID_Device_USBTask(&Slider_HID_Interface);
+		HID_Device_USBTask(&Slider_HID_Interface); 
 		USB_USBTask();
 		//This should check how many times a poll for slider interface was initiated and then get data over SPI from all modules. But it doesn't work. Polling is set to 20 ms and 
 		//even with 150 * 20 ms the sliders are really responsive. Only explanation is that the function CALLBACK_HID_Device_CreateHIDReport is called more often than 20 ms with slider
@@ -278,10 +277,10 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		{
 			if (modules[i].ID == 0x01)
 			{
-				Counting(2);
 				for (int x = 0; x < 3; x++)SliderReport->Value[x] = modules[i].data[x];
 			}
 		}
+		Counting(2);
 	}
 	return false;
 
@@ -307,14 +306,21 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 	switch(FeatureReport->Command)
 	{
 		case FEATR_EFFECT:
-			effectNum = FeatureReport->Value;
+			if (FeatureReport->Optional[2] == 0)effectNum = FeatureReport->Value;
+			else SPISendData(FEATR_EFFECT, FeatureReport->Value - 0xff, FeatureReport->Optional[2] - 1);
 		break;
 		case FEATR_BRIGHTNESS:
-			effectModifier = FeatureReport->Value;
+			
+			if (FeatureReport->Optional[2] == 0)effectModifier = FeatureReport->Value;
+			else SPISendData(FEATR_BRIGHTNESS, FeatureReport->Value - 0x1ff, FeatureReport->Optional[2] - 1);
 		break;
 		case FEATR_PROFILE:
-			eeprom_write_byte(&eepromKeyProfile, (uint8_t)FeatureReport->Value);
-			getKeyMap((uint8_t)FeatureReport->Value);
+			if (FeatureReport->Optional[2] == 0)
+			{
+				eeprom_write_byte(&eepromKeyProfile, (uint8_t)FeatureReport->Value);
+				getKeyMap((uint8_t)FeatureReport->Value);
+			}
+			else SPISendData(FEATR_EFFECT, FeatureReport->Value, FeatureReport->Optional[2] - 1);
 		break;
 		case FEATR_MAPPING:
 			eeprom_write_word(&eepromProfileSelect[FeatureReport->Optional[0]][FeatureReport->Optional[1] >= 4 ? 1 : 0][FeatureReport->Optional[1]%4],FeatureReport->Value);
