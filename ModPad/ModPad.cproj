@@ -125,10 +125,10 @@
       </AvrGcc>
     </ToolchainSettings>
     <UsesExternalMakeFile>True</UsesExternalMakeFile>
-    <OutputDirectory>C:\Projects\ModPad\ModPad</OutputDirectory>
+    <OutputDirectory>C:\Users\Kody\Documents\Atmel Studio\7.0\MacroPad\ModPad</OutputDirectory>
     <BuildTarget>all</BuildTarget>
     <CleanTarget>clean</CleanTarget>
-    <ExternalMakeFilePath>C:\Projects\ModPad\ModPad\makefile</ExternalMakeFilePath>
+    <ExternalMakeFilePath>C:\Users\Kody\Documents\Atmel Studio\7.0\MacroPad\ModPad\makefile</ExternalMakeFilePath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ButtonMatrix.c">

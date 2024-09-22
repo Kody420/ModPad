@@ -58,8 +58,7 @@ pressedButton_t* ReadKey(){
 					pressedKeys[activeKeys].duration = 0;
 				}
 				pressedKeys[activeKeys].duration = (pressedKeys[activeKeys].duration % 150) + 1;
-				//if (pressedKeys[activeKeys].duration > 150)pressedKeys[activeKeys].duration = 100;	//Have to limit duration if key is
-				activeKeys++;																			//going to be pressed for longer
+				activeKeys++;
 			}
 		}
 	}

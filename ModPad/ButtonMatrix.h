@@ -42,10 +42,22 @@
 	//Function Prototypes:
 		/*
 		Function description:
-	
+			Setting pin directions
 		*/
 		void MatrixInit(void);
+		/*
+		Function description:
+			Reading which key is being pressed. Supports multi-key press registration.
+		Return value:
+			Pointer to array of structs holding coordinates what keys and for how long are pressed.
+		*/
 		pressedButton_t* ReadKey(void);
+		/*
+		Function description:
+			Reading of additional button on the board. Debounce implemented.
+		Return value:
+			Bool if button is pressed or not.
+		*/
 		bool ButtonPress(void);
 
 #endif /* BUTTONMATRIX_H_ */

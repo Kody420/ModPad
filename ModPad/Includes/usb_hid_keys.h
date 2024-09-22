@@ -301,4 +301,10 @@
 #define KEY_BRIGHTNESS_UP 0x20a
 #define KEY_BRIGHTNESS_DOWN 0x20b
 
+//Events
+#define EVENT 0x09
+#define USB_CONNECT 0x0a
+#define USB_DISCONNECT 0x0b
+#define USB_ERROR 0x0c
+
 #endif // USB_HID_KEYS

@@ -35,11 +35,11 @@
 			uint8_t ID;
 			uint8_t data[3];
 		}module;
-	//Functions:
+	//Function prototypes:
 		void SPIInit(void);
 		void SPIGetData(module *modules);
 		void SPISendData(uint16_t command, uint16_t data, uint8_t position);
-			//Delay to wait for module to prepare for recieving or sending data
+			//Delay to wait for module to prepare for receiving or sending data
 		void SPIDelay(uint16_t delay);
 		
 #endif /* SPICOM_H_ */

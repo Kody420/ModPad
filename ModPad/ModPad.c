@@ -27,8 +27,39 @@
   arising out of or in connection with the use or performance of
   this software.
 */
+	//Includes:
+		#include "ModPad.h"
+	
+	//Variables:
+		Array_t keyMap;
+		pressedButton_t* buttonStatus;
+		module modules[3];
 
-#include "ModPad.h"
+		uint8_t eventEffect = 0;
+		uint16_t effectNum = 0;
+		uint16_t effectModifier = KEY_RESERVED;
+
+	//EEPROM variables:
+		uint16_t EEMEM eepromEffectNum = 0x101;
+		uint8_t EEMEM eepromKeyProfile = 0;
+		uint16_t EEMEM eepromProfileSelect[PROFILES][ROW_SIZE][COLUMN_SIZE] = {
+			{
+				{KEY_F13, KEY_F14, KEY_F15, KEY_F16},		//F13, F14, F15, F16
+				{KEY_F17, KEY_F18, KEY_F19, KEY_F20}		//F17, F18, F19, F20
+			},
+			{
+				{0x04, 0x05, 0x06, 0x07},		//a, b, c, d
+				{0x08, 0x09, 0x0a, 0x0b}		//e, f, g, h
+			},
+			{
+				{KEY_PREV_EFFECT, KEY_NEXT_EFFECT, KEY_BRIGHTNESS_UP, KEY_BRIGHTNESS_DOWN},
+				{KEY_EFFECT1, KEY_EFFECT2, KEY_EFFECT3, KEY_EFFECT6}
+			},
+			{
+				{KEY_MEDIA_PLAYPAUSE, KEY_MEDIA_MUTE, KEY_MEDIA_VOLUMEUP, KEY_PAUSE},
+				{KEY_MEDIA_PREVIOUSSONG, KEY_MEDIA_NEXTSONG, KEY_MEDIA_VOLUMEDOWN, KEY_SCROLLLOCK}
+			},
+		};
 
 // Buffer to hold the previously generated Keyboard report, for comparison purposes inside the HID class driver.
 static uint8_t PrevKeyboardReportBuffer[MAX(sizeof(USB_ConsumerReport_Data_t), sizeof(USB_KeyReport_Data_t))];
@@ -283,9 +314,6 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		Counting(2);
 	}
 	return false;
-
-	//if (UsedKeyCodes)
-	//KeyboardReport->Modifier = 0xae;
 }
 
 /** HID class driver callback function for the processing of HID reports from the host.

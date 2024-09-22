@@ -30,20 +30,11 @@
 		#define COL_LED3 PD7
 		#define COL_LED4 PD6
 
-		#define EVENT 0x09
-		#define USB_CONNECT 0x0a
-		#define USB_DISCONNECT 0x0b
-		#define USB_ERROR 0x0c
-
 	//Variables:
 		typedef struct {
 			uint8_t ledRow[8];
 			uint8_t ledCol[8];
 		}LedMatrxPins_t;
-
-		LedMatrxPins_t pins;
-
-		uint8_t brightness [LED_ROW_SIZE][LED_COLUMN_SIZE];
 
 	//Function Prototypes:	
 		/*
@@ -54,7 +45,7 @@
 
 		/*
 		Function description:
-			Just a switch case to choose which effect is currently being used. Main function is to write in to 2D array Brightness to set all the leds
+			Just a switch case to choose which effect is currently being used. Main function is to write in to 2D array brightness to set all the LEDs
 			to right brightness level.
 		Arguments:
 			effectNum - carries the current effect number for switch case

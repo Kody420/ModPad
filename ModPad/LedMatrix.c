@@ -4,8 +4,12 @@
  * Created: 12.04.2024 22:07:18
  *  Author: Kody
  */ 
+	//Includes:
+		#include "LedMatrix.h"							 
 
-#include "LedMatrix.h"							 
+	//Variables:
+		LedMatrxPins_t pins;
+		uint8_t brightness [LED_ROW_SIZE][LED_COLUMN_SIZE];
 
 void LedMatrixInit(void)
 {
@@ -85,8 +89,6 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 	{
 		case KEY_EFFECT1:		//All off
 			CounterReset(1);
-			//Zero brightness fix for only this effect. Would like to fix it everywhere
-			//PORTD &= ~((1 << COL_LED1) | (1 << COL_LED2) | (1 << COL_LED3) | (1 << COL_LED4));
 			if (effectChange)
 			{
 				for (int i = 0;i < LED_COLUMN_SIZE;i++)
@@ -214,11 +216,6 @@ ISR(TIMER0_OVF_vect){
 	LedRefresh();
 }
 
-/*
-	There is a problem that the OCR0x is being set on bottom in to the register. That means the brightness level is being set to the 
-	OCR0x register for the next column. Result is everything is offset by one column. The fix is to move the currently written column
-	by LED_COLUMN_SIZE - 1 so basically move back one column. (Cant move back by -1 cos for some reason it wont do modulo of negative number)
-*/
 void LedRefresh(void){
 	static int activeColumn = 0;
 	PORTD &= ~(1 << pins.ledCol[(activeColumn + LED_COLUMN_SIZE - 1) % LED_COLUMN_SIZE]);
