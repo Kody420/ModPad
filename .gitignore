@@ -18,6 +18,9 @@
 *.hex
 *.map
 *.srec
+*.bin
+*.lss
+*.sym
 
 #User Specific Files
 *.atsuo

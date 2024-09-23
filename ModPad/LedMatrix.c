@@ -10,9 +10,17 @@
 	//Variables:
 		LedMatrxPins_t pins;
 		uint8_t brightness [LED_ROW_SIZE][LED_COLUMN_SIZE];
+		uint8_t maxBrightness = 255;
+		uint16_t EEMEM eepromEffectNum = KEY_RESERVED;
+		uint8_t EEMEM eepromMaxBrightness = 255;
 
-void LedMatrixInit(void)
+uint16_t LedMatrixInit(void)
 {
+	eeprom_busy_wait();
+	uint16_t effectNum = eeprom_read_word(&eepromEffectNum);
+	eeprom_busy_wait();
+	maxBrightness = eeprom_read_byte(&eepromMaxBrightness);
+	
 	uint8_t columnPins[COLUMN_SIZE] = {COL_LED1, COL_LED2, COL_LED3, COL_LED4};
 	uint8_t rowPins[ROW_SIZE] = {ROW_LED1, ROW_LED2};
 		//Saving into struct and setting pins
@@ -28,7 +36,7 @@ void LedMatrixInit(void)
 		DDRC |= (1 << rowPins[1]);
 		
 		PORTD |= (1 << rowPins[0]);
-		PORTC |= (1 << rowPins[1]);		
+		PORTC |= (1 << rowPins[1]);
 	}
 		//Synchronization of timers
 	GTCCR |= (1 << TSM);
@@ -44,47 +52,96 @@ void LedMatrixInit(void)
 	TCCR1B |= (1 << WGM12) | (1 << CS12);
 	OCR1BL = 0;
 	
-		//Enable prescaler to start counting
+		//Enable prescaler to start counting with both timers at the same time
 	GTCCR &= ~(1 << TSM);
+	return effectNum;
 }
 
-uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedButton_t* buttonStatus)
+void LedMatrixModifier(uint16_t modifierNum)
+{
+	//Effect modifier switch
+	switch(modifierNum)
+	{
+		case KEY_BRIGHTNESS_UP:
+		if (maxBrightness == 255)break;
+		maxBrightness += 51;
+		eeprom_busy_wait();
+		eeprom_write_byte(&eepromMaxBrightness, maxBrightness);
+		break;
+		
+		case KEY_BRIGHTNESS_DOWN:
+		if (maxBrightness == 0)break;
+		maxBrightness -= 51;
+		eeprom_busy_wait();
+		eeprom_write_byte(&eepromMaxBrightness, maxBrightness);
+		break;
+		case KEY_RESERVED:
+		break;
+	}
+}
+
+void LedMatrixEvent(uint16_t eventNum)
+{
+	switch(eventNum)
+	{
+		case USB_CONNECT:
+		
+		break;
+		
+		case USB_DISCONNECT:
+		
+		break;
+		
+		case USB_ERROR:
+		
+		break;
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+			eventNum--;
+			for (int i = 0;i < LED_COLUMN_SIZE;i++)
+			{
+				for (int x = 0;x < LED_ROW_SIZE;x++)
+				{
+					if (brightness[x][i] > 0)--brightness[x][i];
+				}
+			}
+			brightness[eventNum >= 4 ? 1 : 0][eventNum%4] = maxBrightness;
+		break;
+		case KEY_RESERVED:
+		break;
+	}
+}
+
+void LedMatrixEffect(uint16_t effectNum, pressedButton_t* buttonStatus)
 {
 	static uint8_t delta = 1;
-	static uint8_t maxBrightness = 255;
 	static uint8_t targetBrightness [2][4] = {{0,0,0,0},
 											  {0,0,0,0}};
 	static uint16_t	prevEffectNum = 0;
-	static uint16_t	prevEffectModifier = 0;										  
+	static uint8_t prevMaxBrightness = 0;
 	static uint16_t pseudoRandom = 1;
-	
 	
 	uint8_t activeLed = 0;
 	uint8_t Custombrightness [2][4] = {{40,80,120,160},
 									   {200,240,255,0}};
 	bool effectChange = false;
-	if (effectNum != prevEffectNum || effectModifier != prevEffectModifier)
+	
+	if (effectNum != prevEffectNum)
 	{
+		eeprom_busy_wait();
+		if (prevEffectNum != 0)eeprom_write_word(&eepromEffectNum, effectNum);
 		prevEffectNum = effectNum;
-		prevEffectModifier = effectModifier;
 		effectChange = true;
 	}
-	//Effect modifier switch
-	switch(effectModifier)
+	if (maxBrightness != prevMaxBrightness)
 	{
-		case KEY_BRIGHTNESS_UP:
-			if (maxBrightness == 255)break;
-			maxBrightness += 51;
-		break;
-		
-		case KEY_BRIGHTNESS_DOWN:
-			if (maxBrightness == 0)break;
-			maxBrightness -= 51;
-		break;
-		case KEY_RESERVED:
-		break;
+		prevMaxBrightness = maxBrightness;
+		effectChange = true;
 	}
-		
+	
 	switch(effectNum)
 	{
 		case KEY_EFFECT1:		//All off
@@ -178,35 +235,9 @@ uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedBut
 			}
 		}
 		break;
-		case USB_CONNECT:
-			
-		break;
-		
-		case USB_DISCONNECT:
-			
-		break;
-		
-		case USB_ERROR:
-			
-		break;
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-			for (int i = 0;i < LED_COLUMN_SIZE;i++)
-			{
-				for (int x = 0;x < LED_ROW_SIZE;x++)
-				{
-					if (brightness[x][i] > 0)--brightness[x][i];
-				}
-			}
-			brightness[effectNum >= 4 ? 1 : 0][effectNum%4] = maxBrightness;
-		break;
 		case KEY_RESERVED:
 		break;
 	}
-	return effectNum;
 }
 
 	//Refreshing of leds

@@ -21,8 +21,10 @@ uint16_t CharliPlexInit(){
 	TCCR2B |= (1 << CS21) | (1 << CS20);	//Prescaler 64
 	TIMSK2 |= (1 << TOIE2);		//Interrupt on overcurrentLed
 	
+	eeprom_busy_wait();
 	maxBrightness = eeprom_read_byte(&eepromMaxBrightness);
 	sei();
+	eeprom_busy_wait();
 	return eeprom_read_word(&eepromEffectNum);
 }
 
@@ -33,12 +35,14 @@ void CharliPLexModifier(uint16_t modifierNum){
 		case KEY_BRIGHTNESS_UP:
 		if (maxBrightness == 255)break;
 		maxBrightness += 51;
+		eeprom_busy_wait();
 		eeprom_write_byte(&eepromMaxBrightness, maxBrightness);
 		break;
 		
 		case KEY_BRIGHTNESS_DOWN:
 		if (maxBrightness == 0)break;
 		maxBrightness -= 51;
+		eeprom_busy_wait();
 		eeprom_write_byte(&eepromMaxBrightness, maxBrightness);
 		break;
 		case KEY_RESERVED:
@@ -53,14 +57,21 @@ void CharliPlexEffect(uint16_t effectNum, uint8_t* sliderValues){
 											  {0,0,0}};					  
 	static uint16_t	prevEffectNum = 0;
 	static uint16_t pseudoRandom = 1;
+	static uint8_t prevMaxBrightness = 0;
 
 	uint8_t Custombrightness [2][3] = {{40,80,120},
 									   {200,240,250}};
 	bool effectChange = false;
 	if (effectNum != prevEffectNum)
 	{
+		eeprom_busy_wait();
 		eeprom_write_word(&eepromEffectNum, effectNum);
 		prevEffectNum = effectNum;
+		effectChange = true;
+	}
+	if (maxBrightness != prevMaxBrightness)
+	{
+		prevMaxBrightness = maxBrightness;
 		effectChange = true;
 	}
 

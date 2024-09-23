@@ -92,7 +92,7 @@
 		typedef struct{
 			uint16_t profiles[ROW_SIZE][COLUMN_SIZE];
 		}Array_t;
-		
+
 	//Function Prototypes:
 		void SetupHardware(void);
 
@@ -112,7 +112,14 @@
 		                                          const uint8_t ReportType,
 		                                          const void* ReportData,
 		                                          const uint16_t ReportSize);
-												  
-		Array_t getKeyMap(uint8_t keyMode);
+		/*
+		Function description:
+			Reads a key map for chosen profile from eeprom. Sets eventNum of current profile.
+		Arguments:
+			keyMode - specify what key map is going to be read.
+		Return value:
+			A 2D array with the key map. 	
+		*/										  
+		Array_t getKeyMap(uint8_t keyProfile);
 #endif /* MODPAD_H_ */
 

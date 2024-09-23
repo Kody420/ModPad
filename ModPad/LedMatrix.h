@@ -14,6 +14,7 @@
 		#include <stdio.h>
 		#include <stdbool.h>
 		#include <stdlib.h>
+		#include <avr/eeprom.h>
 
 		#include "ButtonMatrix.h"
 		#include <Includes/Delay.h>
@@ -35,30 +36,40 @@
 			uint8_t ledRow[8];
 			uint8_t ledCol[8];
 		}LedMatrxPins_t;
-
 	//Function Prototypes:	
 		/*
 		Function description:
 			Used to setup correct pins and their direction. Setting timer for consistent refresh rate on each led.
+		Return value:
+			effectNum saved in eeprom.
 		*/
-		void LedMatrixInit(void);
-
+		uint16_t LedMatrixInit(void);
 		/*
 		Function description:
 			Just a switch case to choose which effect is currently being used. Main function is to write in to 2D array brightness to set all the LEDs
 			to right brightness level.
 		Arguments:
-			effectNum - carries the current effect number for switch case
-			effectModifier - carries the current modifier that will be executed 
+			effectNum - carries the current effect number that will be executed
 			buttonStatus - used to see what keys are currently being pressed
-		Return value:
-			If the effectNum or effectModifier values are not found return 1
 		*/
-		uint16_t LedMatrixEffect(uint16_t effectNum, uint16_t effectModifier, pressedButton_t* buttonStatus);
-
+		void LedMatrixEffect(uint16_t effectNum, pressedButton_t* buttonStatus);
 		/*
 		Function description:
-			Controlling outputs (LEDs) based on the value in array Brightness. Timer0 overflow is used for specific refresh frequency.
+			A switch case to choose which modifier is being applied. If needed modified values are saved to eeprom
+		Arguments:
+			modifierNum - carries the current modifier that will be executed
+		*/
+		void LedMatrixModifier(uint16_t modifierNum);
+		/*
+		Function description:
+			A switch case to choose what event is going to get displayed on LEDs.
+		Arguments:
+			eventNum - carries the current event that will be executed
+		*/
+		void LedMatrixEvent(uint16_t eventNum);
+		/*
+		Function description:
+			Controlling outputs (LEDs) based on the value in array brightness. Timer2 overflow is used for specific refresh frequency.
 		*/
 		void LedRefresh(void);
 

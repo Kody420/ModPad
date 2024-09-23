@@ -37,10 +37,9 @@
 
 		uint8_t eventEffect = 0;
 		uint16_t effectNum = 0;
-		uint16_t effectModifier = KEY_RESERVED;
+		uint16_t effectModifier = 0;
 
 	//EEPROM variables:
-		uint16_t EEMEM eepromEffectNum = 0x101;
 		uint8_t EEMEM eepromKeyProfile = 0;
 		uint16_t EEMEM eepromProfileSelect[PROFILES][ROW_SIZE][COLUMN_SIZE] = {
 			{
@@ -127,8 +126,7 @@ int main(void)
 		//Initialization of main and global values
 	buttonStatus = ReadKey();
 	keyMap = getKeyMap(eeprom_read_byte(&eepromKeyProfile));
-	eventEffect = eeprom_read_byte(&eepromKeyProfile);
-	effectNum = eeprom_read_word(&eepromEffectNum);
+	eventEffect = eeprom_read_byte(&eepromKeyProfile) + 1;
 	bool effectStoper = 0;
 	
 	GlobalInterruptEnable();
@@ -144,7 +142,6 @@ int main(void)
 				if (keyMap.profiles[buttonStatus[0].row][buttonStatus[0].column] == KEY_NEXT_EFFECT)effectNum = ((effectNum - 0x101+1)%8)+0x101;
 				else if (keyMap.profiles[buttonStatus[0].row][buttonStatus[0].column] == KEY_PREV_EFFECT)effectNum = ((effectNum - 0x101-1)%8)+0x101;
 				else effectNum = keyMap.profiles[buttonStatus[0].row][buttonStatus[0].column];
-				eeprom_write_word(&eepromEffectNum, effectNum);
 			}
 			else if (keyMap.profiles[buttonStatus[0].row][buttonStatus[0].column] > KEY_RESERVED2)
 			{
@@ -152,10 +149,20 @@ int main(void)
 			}
 		}
 		if (buttonStatus[0].duration == 0) effectStoper = 0;	//Enabling the effect and modifier change after key is no longer pressed 
-		if (Counter(1) > 0xFF) eventEffect = 0xFF;
-		LedMatrixEffect(eventEffect == 0xff ? effectNum : eventEffect, effectModifier, buttonStatus);
-		effectModifier = KEY_RESERVED;
-		
+		if (eventEffect)
+		{
+			LedMatrixEvent(eventEffect);
+			if (Counter(1) > 0xFF) eventEffect = 0x00;
+		}
+		else 
+		{
+			LedMatrixEffect(effectNum, buttonStatus);
+			if (effectModifier)
+			{
+				LedMatrixModifier(effectModifier);
+				effectModifier = 0;
+			}
+		}
 		HID_Device_USBTask(&Keyboard_HID_Interface);
 		HID_Device_USBTask(&Slider_HID_Interface); 
 		USB_USBTask();
@@ -197,7 +204,7 @@ void SetupHardware()
 #endif
 
 	/* Hardware Initialization */
-	LedMatrixInit();
+	effectNum = LedMatrixInit();
 	MatrixInit();
 	SPIInit();
 	USB_Init();
@@ -355,13 +362,13 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
 			getKeyMap(FeatureReport->Optional[0]);
 			eventEffect = FeatureReport->Optional[1];
 		break;
-	}
-	CounterReset(1);	
+	}	
 }           
 
 Array_t getKeyMap(uint8_t keyProfile)
 {
-	eventEffect = keyProfile;
+	eventEffect = keyProfile + 1;
+	CounterReset(1);
 	uint16_t profileSelect[ROW_SIZE][COLUMN_SIZE];
 	eeprom_read_block(profileSelect, &eepromProfileSelect[keyProfile], sizeof(profileSelect));
 	for (int x = 0; x < ROW_SIZE; x++)

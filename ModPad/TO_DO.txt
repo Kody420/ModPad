@@ -36,6 +36,3 @@ Macro keys
 Fix unstable ADC
 	-Could use more samples to smooth it out
 	-Measure AVCC and sliding potenciometrs accurately
-
-Turn off leds in effect 4 (Slider position activated)
-	-Write 0 to brightness array for leds that are not lit

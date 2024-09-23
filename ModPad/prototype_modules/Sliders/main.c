@@ -78,7 +78,7 @@ int main(void)
     while (1) 
     {
 		ReadSliders(&sliders);
-		CharliPlexEffect(KEY_EFFECT4, sliders.values);
+		CharliPlexEffect(effectNum, sliders.values);
 		if (modifierNum)
 		{
 			CharliPLexModifier(modifierNum);

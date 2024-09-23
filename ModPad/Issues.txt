@@ -47,10 +47,4 @@
 
 
 Code:
-	-Effect 3 (breathing)
-		-Sometimes leds are blinking really fast
-		-problem is coused by changing the brightness with other effects. The delta is than in the wrong cycle and insted of cycling between
-		 min and max its overflowing and hitting min or max from "other side"
-		-Is fixed by reseting the device or just switching few times between effects
-	-Effect 1 (off)
-		-is not really off but rather minimum brightness (but is kinda nice bacouse I can tell if it't in bootloader)
+	
